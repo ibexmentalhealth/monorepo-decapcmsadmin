@@ -1,0 +1,16 @@
+backend:
+  name: turbo-github
+  turbo_site_id: 65949689-10c2-4bab-8e0d-5ea7aa1a3a8d
+  branch: development
+
+media_folder: "content/uploads"
+
+collections:
+  - name: content
+    label: Content
+    folder: "content"
+    extension: md
+    create: true
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Body, name: body, widget: markdown }
