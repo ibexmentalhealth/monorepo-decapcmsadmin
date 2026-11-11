@@ -24,11 +24,12 @@ collections:
     fields:
       - { label: Track ID, name: track_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. track_a. Becomes the filename and is referenced by weeks. Do not change after creation." }
       - { label: Title, name: title, widget: string, hint: "e.g. Regulate & Recover" }
-      - { label: Display order, name: display_order, widget: number, value_type: int, min: 1 }
+      - { label: Description, name: description, widget: string, hint: "e.g. Building nervous system regulation tools and capacity"}
+      - { label: Display order, name: display_order, widget: number, value_type: int, min: 1 , hint: "The sorting order when all tracks are listed"}
       - { label: Day order, name: day_order, widget: select, default: free, options: [{ label: "Free - days can be done in any order, any time", value: free }, { label: "Sequential - one day after the other", value: sequential }] }
       - { label: Week unlock rule, name: week_unlock, widget: select, default: after_previous, options: [{ label: "After the previous week is complete", value: after_previous }, { label: "After the previous week is complete, or the user skips ahead", value: after_previous_or_skip_ahead }, { label: "All weeks open from the start", value: all_open }] }
       - { label: Responses locked once a day is complete, name: responses_locked_after_completion, widget: boolean, default: false, hint: "On: users can re-read completed days but not re-submit answers" }
-      - { label: Overview, name: body, widget: markdown, required: false }
+      - { label: Overview, name: body, widget: markdown }
  
   # ---------------------------------------------------------------- WEEKS
   - name: weeks
@@ -305,23 +306,92 @@ collections:
               - { label: Label, name: label, widget: string }
               - { label: Action, name: action, widget: select, options: [{ label: Start next week, value: start_next_week }, { label: Explore other tracks, value: explore_tracks }, { label: Return to home, value: home }, { label: Return to Programme Overview, value: programme_overview }] }
  
-  # ---------------------------------------------------------------- ASSESSMENTS
-  # Minimal stub reusing the same question model. Scoring / track-assignment rules are
-  # not defined yet because they are not in the Track A material.
-  - name: assessments
-    label: Assessments
-    label_singular: Assessment
-    folder: content/assessments
-    extension: md
+  # ---------------------------------------------------------------- ASSESSMENT RESULT COPY
+  # The text shown on the assessment result screen. Each file holds one block of copy.
+  # WHICH variant is shown (hook, state, personality, life areas, track) is decided by the
+  # scoring code from the user's answers; the code keys off the `code` values below.
+  # So: edit the wording freely, but do not change codes, and add or remove entries only together
+  # with a developer. The one exception is a new track, which needs a recommendation entry
+  # (see "Track recommendations").
+  - name: assessment_result
+    label: Assessment result copy
     format: yaml-frontmatter
-    create: true
-    slug: "{{fields.assessment_id}}"
-    identifier_field: title
     editor: { preview: false }
-    fields:
-      - { label: Assessment ID, name: assessment_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "Becomes the filename. Do not change after creation." }
-      - { label: Title, name: title, widget: string }
-      - { label: Intro, name: body, widget: markdown, required: false }
-      - { label: Presentation, name: presentation, widget: select, default: stepper, options: [{ label: All on one page, value: single_page }, { label: One question at a time, value: stepper }] }
-      - { label: Questions, name: questions, widget: list, summary: "{{fields.question_id}} · {{fields.prompt}}", fields: *question_fields }
-      - { label: Completion message, name: completion_message, widget: markdown, required: false }
+    files:
+      - name: hooks
+        label: Hooks (opening line)
+        file: content/assessment_result/hooks.md
+        fields:
+          - label: Hooks
+            name: items
+            widget: list
+            summary: "{{fields.code}} · {{fields.text}}"
+            fields:
+              - { label: Code, name: code, widget: string, pattern: ['^HOOK_[0-9]+$', 'e.g. HOOK_01'], hint: "Used by the scoring code. Do not change." }
+              - { label: Text, name: text, widget: text }
+ 
+      - name: states
+        label: States (where you are right now)
+        file: content/assessment_result/states.md
+        fields:
+          - label: States
+            name: items
+            widget: list
+            summary: "{{fields.code}} · {{fields.text}}"
+            fields:
+              - { label: Code, name: code, widget: string, pattern: ['^STATE_[0-9]+$', 'e.g. STATE_01'], hint: "Used by the scoring code. Do not change." }
+              - { label: Text, name: text, widget: text }
+          - { label: Disruption modifier, name: disruption_modifier, widget: text, hint: "Added under the state text when a significant life disruption was noted" }
+          - { label: Clinical add-on, name: clinical_addon, widget: text, hint: "Added under the state text when scores suggest professional support. Handle with care and keep the tone supportive" }
+ 
+      - name: personalities
+        label: Personality profiles
+        file: content/assessment_result/personalities.md
+        fields:
+          - label: Personality profiles
+            name: items
+            widget: list
+            summary: "{{fields.code}} · {{fields.text}}"
+            fields:
+              - { label: Code, name: code, widget: string, pattern: ['^PERS_[0-9]+$', 'e.g. PERS_01'], hint: "Used by the scoring code. Do not change." }
+              - { label: Text, name: text, widget: text }
+ 
+      - name: life_areas
+        label: Life areas
+        file: content/assessment_result/life_areas.md
+        fields:
+          - { label: Intro, name: intro, widget: text, hint: "Shown above the life areas" }
+          - label: Life areas
+            name: items
+            widget: list
+            summary: "{{fields.code}} · {{fields.label}}"
+            hint: "The result screen shows the highest and lowest scoring area"
+            fields:
+              - { label: Code, name: code, widget: string, pattern: ['^AREA_[0-9]+$', 'e.g. AREA_01'], hint: "Used by the scoring code. Do not change." }
+              - { label: Label, name: label, widget: string }
+              - { label: Assessment question ID, name: question_id, widget: string, hint: "The onboarding assessment question whose score drives this area (e.g. Q18). Changing this changes scoring. Ask a developer." }
+              - { label: Area text, name: area_text, widget: text, hint: "Always shown when this area appears" }
+              - { label: Text when the score is low (1-2), name: low_text, widget: text }
+              - { label: Text when the score is high (4-5), name: high_text, widget: text }
+ 
+      - name: track_recommendations
+        label: Track recommendations
+        file: content/assessment_result/track_recommendations.md
+        fields:
+          - { label: Bridge line, name: bridge, widget: text, hint: "Shown just before the recommended track's text" }
+          - label: Recommendations
+            name: items
+            widget: list
+            summary: "{{fields.code}} · {{fields.track}}"
+            hint: "Add one entry for every new track, otherwise a user routed to it sees no recommendation"
+            fields:
+              - { label: Track, name: track, widget: relation, collection: tracks, value_field: track_id, search_fields: [title, track_id], display_fields: [title] }
+              - { label: Code, name: code, widget: string, pattern: ['^TRACK_[A-Z0-9]+$', 'e.g. TRACK_A'], hint: "Upper-case track code, e.g. TRACK_A for track_a" }
+              - { label: Text, name: text, widget: text, hint: "Plain text. Blank line = new paragraph" }
+ 
+      - name: closing_and_disclaimer
+        label: Closing line and disclaimer
+        file: content/assessment_result/closing_and_disclaimer.md
+        fields:
+          - { label: Closing line, name: closing, widget: string }
+          - { label: Disclaimer, name: disclaimer, widget: text }
