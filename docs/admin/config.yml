@@ -26,7 +26,6 @@ collections:
       - { label: Title, name: title, widget: string, hint: "e.g. Regulate & Recover" }
       - { label: Description, name: description, widget: string, hint: "e.g. Building nervous system regulation tools and capacity"}
       - { label: Display order, name: display_order, widget: number, value_type: int, min: 1 , hint: "The sorting order when all tracks are listed"}
-      - { label: Day order, name: day_order, widget: select, default: free, options: [{ label: "Free - days can be done in any order, any time", value: free }, { label: "Sequential - one day after the other", value: sequential }] }
       - { label: Week unlock rule, name: week_unlock, widget: select, default: after_previous, options: [{ label: "After the previous week is complete", value: after_previous }, { label: "After the previous week is complete, or the user skips ahead", value: after_previous_or_skip_ahead }, { label: "All weeks open from the start", value: all_open }] }
       - { label: Responses locked once a day is complete, name: responses_locked_after_completion, widget: boolean, default: false, hint: "On: users can re-read completed days but not re-submit answers" }
       - { label: Overview, name: body, widget: markdown }
@@ -110,14 +109,6 @@ collections:
           - { label: Evening check-in submitted (practice), value: evening_submitted }
           - { label: All questions answered (reflection), value: all_questions_answered }
           - { label: Manual "Complete" button, value: manual }
-      - label: Gentle prompt if an earlier day is not done
-        name: nudge_if_incomplete
-        widget: object
-        required: false
-        hint: "Shown at the start of this day when the referenced day has not been completed. Never blocks the day"
-        fields:
-          - { label: Day number (same week), name: day_number, widget: number, value_type: int, min: 1, max: 7 }
-          - { label: Message, name: message, widget: text }
       - { label: Prompt if the user reports nothing came up, name: nothing_came_up_prompt, widget: text, required: false, hint: "Real-world rep days. Shown when the user says nothing happened, so the session stays generative. The day still completes" }
       - { label: Completes the week, name: completes_week, widget: boolean, default: false, hint: "On for Day 7 reflection days: triggers week completion and unlocks the next week" }
  
