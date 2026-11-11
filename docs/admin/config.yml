@@ -24,7 +24,6 @@ collections:
     fields:
       - { label: Track ID, name: track_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. track_a. Becomes the filename and is referenced by weeks. Do not change after creation." }
       - { label: Title, name: title, widget: string, hint: "e.g. Regulate & Recover" }
-      - { label: Description, name: description, widget: text }
       - { label: Display order, name: display_order, widget: number, value_type: int, min: 1 }
       - { label: Day order, name: day_order, widget: select, default: free, options: [{ label: "Free - days can be done in any order, any time", value: free }, { label: "Sequential - one day after the other", value: sequential }] }
       - { label: Week unlock rule, name: week_unlock, widget: select, default: after_previous, options: [{ label: "After the previous week is complete", value: after_previous }, { label: "After the previous week is complete, or the user skips ahead", value: after_previous_or_skip_ahead }, { label: "All weeks open from the start", value: all_open }] }
