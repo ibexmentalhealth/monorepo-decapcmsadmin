@@ -26,8 +26,6 @@ collections:
       - { label: Title, name: title, widget: string, hint: "e.g. Regulate & Recover" }
       - { label: Description, name: description, widget: string, hint: "e.g. Building nervous system regulation tools and capacity"}
       - { label: Display order, name: display_order, widget: number, value_type: int, min: 1 , hint: "The sorting order when all tracks are listed"}
-      - { label: Week unlock rule, name: week_unlock, widget: select, default: after_previous, options: [{ label: "After the previous week is complete", value: after_previous }, { label: "After the previous week is complete, or the user skips ahead", value: after_previous_or_skip_ahead }, { label: "All weeks open from the start", value: all_open }] }
-      - { label: Responses locked once a day is complete, name: responses_locked_after_completion, widget: boolean, default: false, hint: "On: users can re-read completed days but not re-submit answers" }
       - { label: Overview, name: body, widget: markdown }
  
   # ---------------------------------------------------------------- WEEKS
@@ -55,9 +53,6 @@ collections:
       - { label: Epigraph author, name: epigraph_author, widget: string, required: false }
       - { label: Outcome statement, name: outcome, widget: text, required: false, hint: "Optional. Shown after the intro text and on the week card, e.g. 'By the end of the week...'" }
       - { label: Has intro screen, name: has_intro, widget: boolean, default: true, hint: "Intro never counts toward week completion" }
-      - { label: Intro can be skipped, name: intro_skippable, widget: boolean, default: true }
-      - { label: Intro start button label, name: intro_cta_label, widget: string, default: "Start Day 1" }
-      - { label: Intro skip link label, name: intro_skip_label, widget: string, default: "Skip intro", required: false }
       - { label: Intro screen text, name: body, widget: markdown, required: false, hint: "Use ## headings for the intro sections. Do not repeat the outcome statement here." }
  
   # ---------------------------------------------------------------- DAYS
@@ -100,17 +95,7 @@ collections:
       - { label: Estimated minutes (upper end of range), name: estimated_minutes_max, widget: number, value_type: int, min: 1, required: false }
       - { label: Time label override, name: time_label, widget: string, required: false, hint: "Only if the time is not a simple range, e.g. '5 minutes in-app, rest in the world'" }
       - { label: Session format summary, name: format_summary, widget: string, required: false, hint: "e.g. Teaching → Exercise → Reflection" }
-      - label: Day completes when
-        name: completion
-        widget: select
-        default: exercise_submitted
-        options:
-          - { label: Exercise submitted (teaching), value: exercise_submitted }
-          - { label: Evening check-in submitted (practice), value: evening_submitted }
-          - { label: All questions answered (reflection), value: all_questions_answered }
-          - { label: Manual "Complete" button, value: manual }
-      - { label: Prompt if the user reports nothing came up, name: nothing_came_up_prompt, widget: text, required: false, hint: "Real-world rep days. Shown when the user says nothing happened, so the session stays generative. The day still completes" }
-      - { label: Completes the week, name: completes_week, widget: boolean, default: false, hint: "On for Day 7 reflection days: triggers week completion and unlocks the next week" }
+      - { label: Completes the week, name: completes_week, widget: boolean, default: false, hint: "On for the last day of the week, which completes the week. Usually Day 7, but earlier if the track does not run every day of the week" }
  
       # ---- TEACHING / REFLECTION: ordered content blocks (also used inside practice sections)
       - &blocks
@@ -145,29 +130,7 @@ collections:
             fields:
               - { label: Section ID, name: section_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. w1_d3_expandable_variations. Open/closed state is stored per user against this ID" }
               - { label: Title, name: title, widget: string }
-              - { label: Starts expanded, name: start_expanded, widget: boolean, default: false }
               - { label: Body, name: body, widget: markdown }
- 
-          - label: Interactive element (optional enhancement)
-            name: interactive
-            widget: object
-            summary: "{{fields.kind}} · {{fields.title}}"
-            hint: "Optional richer visual/tool. Always provide a fallback so the day works without it."
-            fields:
-              - label: Kind
-                name: kind
-                widget: select
-                options:
-                  - { label: Emotion wheel (pick emotions), value: emotion_wheel }
-                  - { label: Body map (tap body regions), value: body_map }
-                  - { label: Window of tolerance visual, value: window_of_tolerance }
-                  - { label: Countdown timer, value: timer }
-                  - { label: Choice point diagram, value: choice_point }
-                  - { label: Decision tree / flowchart, value: decision_tree }
-              - { label: Title, name: title, widget: string }
-              - { label: Timer length in seconds, name: duration_seconds, widget: number, value_type: int, min: 5, required: false, hint: "Timer only, e.g. 60 or 90" }
-              - { label: Store the user's selection under question ID, name: store_as, widget: string, required: false, hint: "Wheel / body map / decision tree selections, so they can feed pattern tracking" }
-              - { label: Fallback content (static text or diagram), name: fallback, widget: markdown, hint: "Shown when the interactive is not available. A diagram can go in a code fence." }
  
           - label: Show user's earlier answer
             name: recall
@@ -189,11 +152,6 @@ collections:
             fields:
               - { label: Title, name: title, widget: string, required: false }
               - { label: Intro, name: intro, widget: markdown, required: false }
-              - { label: Presentation, name: presentation, widget: select, default: single_page, options: [{ label: All on one page, value: single_page }, { label: One question at a time with progress ("Question 2 of 4"), value: stepper }] }
-              - { label: At least one question must be answered, name: at_least_one_answered, widget: boolean, default: false, hint: "For groups of optional questions where one is enough (Week 1 Day 5, 'What can you park?')" }
-              - { label: Message if none answered, name: validation_message, widget: string, required: false }
-              - { label: Becomes available, name: available_from, widget: select, default: now, options: [{ label: With the rest of the day, value: now }, { label: Later in the week (follow-up check-in), value: end_of_week }], hint: "Use 'later in the week' for follow-ups on a commitment made earlier in the day content" }
-              - { label: Reminder message when it becomes available, name: available_reminder, widget: string, required: false }
               - label: Questions
                 name: questions
                 widget: list
@@ -219,9 +177,6 @@ collections:
                   - { label: Show only if, name: show_if, widget: object, required: false, hint: "Conditional question, e.g. only when an earlier toggle equals 'yes'. 'Equals' is an exact match on the option value; use a|b for either of several", fields: [{ label: Question ID, name: question_id, widget: string }, { label: Equals (option value), name: equals, widget: string }] }
                   # text questions
                   - { label: Placeholder, name: placeholder, widget: string, required: false }
-                  - { label: Min characters, name: min_chars, widget: number, value_type: int, min: 0, required: false, hint: "Text only" }
-                  - { label: Max characters, name: max_chars, widget: number, value_type: int, min: 1, required: false, hint: "Text only" }
-                  - { label: Input size, name: input_size, widget: select, default: medium, options: [{ label: "Small (one line / short answer)", value: small }, { label: Medium, value: medium }, { label: "Large (big text box)", value: large }], hint: "Text only" }
                   # scale questions
                   - { label: Scale minimum, name: scale_min, widget: number, value_type: int, default: 1, required: false, hint: "Scale only" }
                   - { label: Scale maximum, name: scale_max, widget: number, value_type: int, min: 2, required: false, hint: "Scale only, e.g. 5 or 10" }
@@ -233,10 +188,8 @@ collections:
                     required: false
                     hint: "Scale only. Optional: one label per point in order starting at the minimum (e.g. '1 - Still quite hazy...'). Overrides the min/max labels"
                     field: { label: Point label, name: point_label, widget: string }
-                  - { label: Scale control, name: scale_style, widget: select, default: buttons, options: [{ label: Tappable buttons, value: buttons }, { label: Slider, value: slider }], hint: "Scale only" }
                   # select / toggle / dropdown / multi_select questions
-                  - { label: Surface in the user's profile, name: surface_in_profile, widget: boolean, default: false, hint: "For answers that should stay visible afterwards, e.g. the working identity statement" }
-                  - { label: Profile label, name: profile_label, widget: string, required: false, hint: "Heading used in the profile if surfaced, e.g. My working identity statement" }
+                  - { label: Builds the user profile, name: builds_profile, widget: boolean, default: false, hint: "On = this answer is data the app uses to build the user profile" }
                   - label: Options
                     name: options
                     widget: list
@@ -248,13 +201,8 @@ collections:
                       - { label: Label, name: label, widget: string }
                       - { label: Shows a text field when chosen ("Other"), name: has_text_field, widget: boolean, default: false }
                       - { label: Exclusive (clears the other choices when picked), name: is_exclusive, widget: boolean, default: false, hint: "Multi-select only, e.g. 'Honestly, nowhere that feels quite right'" }
-                      - { label: Text field min characters, name: text_field_min_chars, widget: number, value_type: int, min: 0, required: false }
-                      - { label: Text field max characters, name: text_field_max_chars, widget: number, value_type: int, min: 1, required: false }
-                  - { label: Pattern tag, name: pattern_tag, widget: select, required: false, options: [{ label: Emotion named, value: emotion }, { label: Body sensation, value: body_sensation }, { label: Trigger / situation, value: trigger }, { label: Regulation strategy, value: regulation_strategy }, { label: Habit attempt outcome (done / partly / not today), value: attempt_outcome }], hint: "Optional. Marks answers to collect for cross-week pattern tracking" }
-                  - { label: Min selections, name: min_selections, widget: number, value_type: int, min: 0, required: false, hint: "Multi-select only" }
-                  - { label: Max selections, name: max_selections, widget: number, value_type: int, min: 1, required: false, hint: "Multi-select only" }
+                  - { label: Builds patterns, name: builds_patterns, widget: boolean, default: false, hint: "On = this answer is data the app uses to find patterns across weeks" }
  
-      - { label: Submit button label, name: submit_label, widget: string, required: false, hint: "Teaching/reflection days, e.g. Complete Day 1 / Complete Week 1" }
  
       # ---- PRACTICE DAYS: two-part structure
       - label: Morning section (practice days)
@@ -263,19 +211,13 @@ collections:
         required: false
         fields:
           - *blocks
-          - { label: Submit button label, name: submit_label, widget: string, required: false, hint: "e.g. Set commitment. Leave empty when the morning section is just a prompt with no input" }
  
       - label: Evening section (practice days)
         name: evening
         widget: object
         required: false
         fields:
-          - { label: Unlocks after hour (user local time, 24h), name: unlock_after_hour, widget: number, value_type: int, min: 0, max: 23, required: false, hint: "e.g. 17. Leave empty for no time lock" }
-          - { label: Can be opened early manually, name: allow_early_access, widget: boolean, default: true }
-          - { label: Push reminder time (HH:MM, user local time), name: reminder_time, widget: string, required: false, hint: "e.g. 20:00. Leave empty for no reminder" }
-          - { label: Push reminder message, name: reminder_message, widget: string, required: false }
           - *blocks
-          - { label: Submit button label, name: submit_label, widget: string, required: false, hint: "e.g. Complete Day 2" }
  
       # ---- shown after the day is completed (week/track completion, next-week preview)
       - label: Completion screen
@@ -287,15 +229,6 @@ collections:
           - { label: Success message, name: success_message, widget: string, required: false, hint: "e.g. ✓ Week 1 complete" }
           - { label: Follow-up assessment to offer, name: followup_assessment, widget: relation, collection: assessments, search_fields: [title], value_field: assessment_id, display_fields: [title], required: false, hint: "Optional, e.g. an offboarding measure offered when a track is completed" }
           - { label: Body, name: body, widget: markdown, required: false, hint: "e.g. 'Looking ahead to Week 2' or the 'Track A Complete' summary" }
-          - { label: Note under the message, name: unlock_note, widget: string, required: false, hint: "e.g. Week 2 unlocks tomorrow" }
-          - label: Buttons
-            name: buttons
-            widget: list
-            required: false
-            summary: "{{fields.label}}"
-            fields:
-              - { label: Label, name: label, widget: string }
-              - { label: Action, name: action, widget: select, options: [{ label: Start next week, value: start_next_week }, { label: Explore other tracks, value: explore_tracks }, { label: Return to home, value: home }, { label: Return to Programme Overview, value: programme_overview }] }
  
   # ---------------------------------------------------------------- ASSESSMENT RESULT COPY
   # The text shown on the assessment result screen. Each file holds one block of copy.
