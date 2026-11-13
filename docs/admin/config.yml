@@ -22,37 +22,37 @@ collections:
     sortable_fields: [display_order, title]
     editor: { preview: false }
     fields:
-      - { label: Track ID, name: track_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. track_a. Becomes the filename and is referenced by weeks. Do not change after creation." }
+      - { label: Track ID, name: track_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. track_a. Becomes the filename and is referenced by units. Do not change after creation." }
       - { label: Title, name: title, widget: string, hint: "e.g. Regulate & Recover" }
       - { label: Description, name: description, widget: string, hint: "e.g. Building nervous system regulation tools and capacity"}
       - { label: Display order, name: display_order, widget: number, value_type: int, min: 1 , hint: "The sorting order when all tracks are listed"}
       - { label: Overview, name: body, widget: markdown }
  
-  # ---------------------------------------------------------------- WEEKS
-  - name: weeks
-    label: Weeks
-    label_singular: Week
-    folder: content/weeks
+  # ---------------------------------------------------------------- UNITS
+  - name: units
+    label: Units
+    label_singular: Unit
+    folder: content/units
     extension: md
     format: yaml-frontmatter
     create: true
-    slug: "{{fields.week_id}}"
+    slug: "{{fields.unit_id}}"
     identifier_field: title
-    summary: "{{fields.week_id}} · {{title}}"
-    sortable_fields: [week_id, title]
+    summary: "{{fields.unit_id}} · {{title}}"
+    sortable_fields: [unit_id, title]
     view_groups:
       - { label: Track, field: track }
     editor: { preview: false }
     fields:
-      - { label: Week ID, name: week_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. track_a_week_1. Becomes the filename. Do not change after creation." }
+      - { label: Unit ID, name: unit_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. track_a_unit_1. Becomes the filename. Do not change after creation." }
       - { label: Track, name: track, widget: relation, collection: tracks, value_field: track_id, search_fields: [title, track_id], display_fields: [title] }
-      - { label: Week number, name: week_number, widget: number, value_type: int, min: 1 }
+      - { label: Unit number, name: unit_number, widget: number, value_type: int, min: 1 }
       - { label: Title, name: title, widget: string, hint: "e.g. First, Safety" }
       - { label: Subtitle, name: subtitle, widget: string, required: false, hint: "e.g. What am I actually feeling?" }
-      - { label: Epigraph quote, name: epigraph_quote, widget: text, required: false, hint: "Optional quotation shown at the top of the week" }
+      - { label: Epigraph quote, name: epigraph_quote, widget: text, required: false, hint: "Optional quotation shown at the top of the unit" }
       - { label: Epigraph author, name: epigraph_author, widget: string, required: false }
-      - { label: Outcome statement, name: outcome, widget: text, required: false, hint: "Optional. Shown after the intro text and on the week card, e.g. 'By the end of the week...'" }
-      - { label: Has intro screen, name: has_intro, widget: boolean, default: true, hint: "Intro never counts toward week completion" }
+      - { label: Outcome statement, name: outcome, widget: text, required: false, hint: "Optional. Shown after the intro text and on the unit card, e.g. 'By the end of the unit...'" }
+      - { label: Has intro screen, name: has_intro, widget: boolean, default: true, hint: "The intro is not a day" }
       - { label: Intro screen text, name: body, widget: markdown, required: false, hint: "Use ## headings for the intro sections. Do not repeat the outcome statement here." }
  
   # ---------------------------------------------------------------- DAYS
@@ -68,20 +68,20 @@ collections:
     summary: "{{fields.day_id}} · {{title}}"
     sortable_fields: [day_id, title]
     view_groups:
-      - { label: Week, field: week }
+      - { label: Unit, field: unit }
       - { label: Day type, field: day_type }
     editor: { preview: false }
     fields:
       # ---- identity & behaviour
       - { label: Day ID, name: day_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. track_a_w1_d2. Becomes the filename. Do not change after creation." }
-      - { label: Week, name: week, widget: relation, collection: weeks, value_field: week_id, search_fields: [title, week_id], display_fields: [week_id, title] }
-      - { label: Day number, name: day_number, widget: number, value_type: int, min: 1, max: 7 }
+      - { label: Unit, name: unit, widget: relation, collection: units, value_field: unit_id, search_fields: [title, unit_id], display_fields: [unit_id, title] }
+      - { label: Day number, name: day_number, widget: number, value_type: int, min: 1 }
       - label: Day type
         name: day_type
         widget: select
         options:
           - { label: "Teaching (~10-12 min, scrollable content + exercise)", value: teaching }
-          - { label: "Practice (~3-5 min: morning + evening sections, OR a single-session practice built from content blocks)", value: practice }
+          - { label: "Practice (~3-5 min: short action or two-part day)", value: practice }
           - { label: "Reflection (~7 min, stepped questions)", value: reflection }
       - label: Category
         name: day_category
@@ -95,7 +95,6 @@ collections:
       - { label: Estimated minutes (upper end of range), name: estimated_minutes_max, widget: number, value_type: int, min: 1, required: false }
       - { label: Time label override, name: time_label, widget: string, required: false, hint: "Only if the time is not a simple range, e.g. '5 minutes in-app, rest in the world'" }
       - { label: Session format summary, name: format_summary, widget: string, required: false, hint: "e.g. Teaching → Exercise → Reflection" }
-      - { label: Completes the week, name: completes_week, widget: boolean, default: false, hint: "On for the last day of the week, which completes the week. Usually Day 7, but earlier if the track does not run every day of the week" }
  
       # ---- TEACHING / REFLECTION: ordered content blocks (also used inside practice sections)
       - &blocks
@@ -118,7 +117,7 @@ collections:
             name: section
             widget: object
             summary: "{{fields.phase}}"
-            hint: "Marks a phase inside a day (e.g. OPEN, DEEPEN, BUILD). Content blocks that follow belong to it until the next divider"
+            hint: "Marks a phase inside a day (e.g. OPEN, DEEPEN, BUILD). Blocks that follow belong to it until the next divider"
             fields:
               - { label: Phase, name: phase, widget: select, options: [{ label: Open, value: open }, { label: Deepen, value: deepen }, { label: Build, value: build }, { label: Other (use the label), value: other }] }
               - { label: Label override, name: label, widget: string, required: false, hint: "Display text if different from the phase name, or when Phase is Other" }
@@ -138,101 +137,80 @@ collections:
             summary: "{{fields.label}}"
             fields:
               - { label: Label, name: label, widget: string, hint: "e.g. This morning you said:" }
-              - label: Question IDs to display
-                name: from
+              - label: Questions to display
+                name: question_ids
                 widget: list
-                field: { label: Question ID, name: question_id, widget: string }
-              - { label: Message if nothing was answered, name: missing_message, widget: text, required: false, hint: "e.g. Go back to Day 5 to choose your structural changes, then return here to practice them." }
-              - { label: Block the day if missing, name: required, widget: boolean, default: false }
+                field: { label: Question, name: question_id, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt] }
  
-          - label: Exercise / questions
-            name: exercise
+          - label: Question
+            name: question
             widget: object
-            summary: "{{fields.title}}"
+            summary: "{{fields.question_id}}"
+            hint: "A question the user answers here. Questions are written once under Questions and placed in days or questionnaires by reference"
             fields:
-              - { label: Title, name: title, widget: string, required: false }
-              - { label: Intro, name: intro, widget: markdown, required: false }
-              - label: Questions
-                name: questions
-                widget: list
-                summary: "{{fields.question_id}} · {{fields.prompt}}"
-                fields: &question_fields
-                  - { label: Question ID, name: question_id, widget: string, pattern: ['^[A-Za-z0-9_]+$', 'Letters, digits, underscores'], hint: "e.g. w1_d2_evening_did_you_use. Responses are stored against this ID. Never rename after launch. Assessment questions use the Q01-style codes from the scoring logic." }
-                  - label: Type
-                    name: type
-                    widget: select
-                    default: text
-                    options:
-                      - { label: Free text, value: text }
-                      - { label: Single select (radio), value: single_select }
-                      - { label: Multi select (checkboxes), value: multi_select }
-                      - { label: Toggle (Yes/No/...), value: toggle }
-                      - { label: Dropdown, value: dropdown }
-                      - { label: Scale (e.g. 1-5, 1-10), value: scale }
-                      - { label: Date, value: date }
-                  - { label: Group heading, name: group_label, widget: string, required: false, hint: "Optional heading shown above a run of questions that share it (e.g. 'Early stress signals')" }
-                  - { label: Prompt, name: prompt, widget: text }
-                  - { label: Help text, name: help, widget: text, required: false }
-                  - { label: Required, name: required, widget: boolean, default: true }
-                  - { label: Show only if, name: show_if, widget: object, required: false, hint: "Conditional question, e.g. only when an earlier toggle equals 'yes'. 'Equals' is an exact match on the option value; use a|b for either of several", fields: [{ label: Question ID, name: question_id, widget: string }, { label: Equals (option value), name: equals, widget: string }] }
-                  # text questions
-                  - { label: Placeholder, name: placeholder, widget: string, required: false }
-                  # scale questions
-                  - { label: Scale minimum, name: scale_min, widget: number, value_type: int, default: 1, required: false, hint: "Scale only" }
-                  - { label: Scale maximum, name: scale_max, widget: number, value_type: int, min: 2, required: false, hint: "Scale only, e.g. 5 or 10" }
-                  - { label: Label for minimum, name: scale_min_label, widget: string, required: false, hint: "Scale only, e.g. not confident" }
-                  - { label: Label for maximum, name: scale_max_label, widget: string, required: false, hint: "Scale only, e.g. very confident" }
-                  - label: Label for every point
-                    name: scale_labels
-                    widget: list
-                    required: false
-                    hint: "Scale only. Optional: one label per point in order starting at the minimum (e.g. '1 - Still quite hazy...'). Overrides the min/max labels"
-                    field: { label: Point label, name: point_label, widget: string }
-                  # select / toggle / dropdown / multi_select questions
-                  - { label: Builds the user profile, name: builds_profile, widget: boolean, default: false, hint: "On = this answer is data the app uses to build the user profile" }
-                  - label: Options
-                    name: options
-                    widget: list
-                    required: false
-                    summary: "{{fields.label}}"
-                    hint: "Select, multi-select, toggle and dropdown only"
-                    fields:
-                      - { label: Value, name: value, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'] }
-                      - { label: Label, name: label, widget: string }
-                      - { label: Shows a text field when chosen ("Other"), name: has_text_field, widget: boolean, default: false }
-                      - { label: Exclusive (clears the other choices when picked), name: is_exclusive, widget: boolean, default: false, hint: "Multi-select only, e.g. 'Honestly, nowhere that feels quite right'" }
-                  - { label: Builds patterns, name: builds_patterns, widget: boolean, default: false, hint: "On = this answer is data the app uses to find patterns across weeks" }
+              - { label: Question, name: question_id, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt] }
  
- 
-      # ---- PRACTICE DAYS: two-part structure
-      - label: Morning section (practice days)
-        name: morning
-        widget: object
+  # ---------------------------------------------------------------- QUESTIONS
+  # Every question is written once here and referenced by ID from day blocks and questionnaires.
+  # A question may feed one metric (a number) or one modifier (true/false) on the user's profile.
+  - name: questions
+    label: Questions
+    label_singular: Question
+    folder: content/questions
+    extension: md
+    format: yaml-frontmatter
+    create: true
+    slug: "{{fields.question_id}}"
+    identifier_field: prompt
+    summary: "{{fields.question_id}} · {{prompt}}"
+    sortable_fields: [question_id]
+    view_groups:
+      - { label: Type, field: type }
+    editor: { preview: false }
+    fields:
+      - { label: Question ID, name: question_id, widget: string, pattern: ['^[A-Za-z0-9_]+$', 'Letters, digits, underscores'], hint: "e.g. d_w2_d3_bring. Becomes the filename. Answers are stored against it. Never rename after launch." }
+      - label: Type
+        name: type
+        widget: select
+        default: text
+        options:
+          - { label: Free text, value: text }
+          - { label: Single select (radio), value: single_select }
+          - { label: Multi select (checkboxes), value: multi_select }
+          - { label: Toggle (yes/no), value: toggle }
+          - { label: Dropdown, value: dropdown }
+          - { label: Scale (e.g. 1-5, 1-10), value: scale }
+          - { label: Date, value: date }
+      - { label: Prompt, name: prompt, widget: text }
+      - { label: Help text, name: help, widget: text, required: false }
+      - { label: Placeholder, name: placeholder, widget: string, required: false, hint: "Free text only" }
+      - { label: Scale minimum, name: scale_min, widget: number, value_type: int, default: 1, required: false, hint: "Scale only" }
+      - { label: Scale maximum, name: scale_max, widget: number, value_type: int, min: 2, required: false, hint: "Scale only, e.g. 5 or 10" }
+      - { label: Label for minimum, name: scale_min_label, widget: string, required: false, hint: "Scale only, e.g. not confident" }
+      - { label: Label for maximum, name: scale_max_label, widget: string, required: false, hint: "Scale only, e.g. very confident" }
+      - label: Label for every point
+        name: scale_labels
+        widget: list
         required: false
-        fields:
-          - *blocks
- 
-      - label: Evening section (practice days)
-        name: evening
-        widget: object
+        hint: "Scale only. Optional: one label per point in order starting at the minimum. Overrides the min/max labels"
+        field: { label: Point label, name: point_label, widget: string }
+      - label: Options
+        name: options
+        widget: list
         required: false
+        summary: "{{fields.label}}"
+        hint: "Single select, multi select, toggle and dropdown only. The answer is stored as the position of the chosen option, so never reorder or remove options after launch"
         fields:
-          - *blocks
- 
-      # ---- shown after the day is completed (week/track completion, next-week preview)
-      - label: Completion screen
-        name: completion_screen
-        widget: object
-        required: false
-        fields:
-          - { label: Celebration, name: celebration, widget: select, default: none, options: [none, week, track] }
-          - { label: Success message, name: success_message, widget: string, required: false, hint: "e.g. ✓ Week 1 complete" }
-          - { label: Follow-up assessment to offer, name: followup_assessment, widget: relation, collection: assessments, search_fields: [title], value_field: assessment_id, display_fields: [title], required: false, hint: "Optional, e.g. an offboarding measure offered when a track is completed" }
-          - { label: Body, name: body, widget: markdown, required: false, hint: "e.g. 'Looking ahead to Week 2' or the 'Track A Complete' summary" }
+          - { label: Value, name: value, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'] }
+          - { label: Label, name: label, widget: string }
+          - { label: Shows a text field when chosen ("Other"), name: has_text_field, widget: boolean, default: false }
+          - { label: Exclusive (clears the other choices when picked), name: is_exclusive, widget: boolean, default: false, hint: "Multi select only" }
+      - { label: Feeds metric, name: metric, widget: select, required: false, options: [{ label: Stress, value: stress }, { label: Anxiety, value: anxiety }, { label: Conscientiousness, value: conscientiousness }, { label: Neuroticism, value: neuroticism }, { label: Emotional sensitivity, value: emotional_sensitivity }, { label: Goal alignment, value: goal_alignment }, { label: Relationship satisfaction, value: relationship_satisfaction }, { label: Agreeableness, value: agreeableness }, { label: Extraversion, value: extraversion }, { label: Openness, value: openness }, { label: Drive, value: drive }, { label: Self-efficacy, value: self_efficacy }, { label: PSS, value: pss }, { label: GAD, value: gad }, { label: PHQ, value: phq }, { label: Physical Health, value: physical_health }, { label: Work-Life Balance, value: work_life_balance }, { label: Close Relationships, value: close_relationships }, { label: Community and Belonging, value: community_and_belonging }], hint: "The answer is added to this metric on the user's profile. Scale, single select and dropdown only. The list mirrors the database and is changed by a developer" }
+      - { label: Sets modifier, name: modifier, widget: select, required: false, options: [{ label: Disruption, value: disruption }], hint: "The answer sets this true/false modifier on the user's profile. Toggle only. The list mirrors the database and is changed by a developer. A question feeds a metric or a modifier, not both" }
+      - { label: Follow-up question, name: follow_up, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt], required: false, hint: "Asked after this one, e.g. 'What happened?' after a toggle" }
  
   # ---------------------------------------------------------------- QUESTIONNAIRES
-  # A questionnaire is the questions a user answers (onboarding, a check-in after a track, ...).
-  # Scoring stays in code and keys off the question IDs.
+  # A questionnaire is an ordered list of questions, optionally followed by an assessment.
   - name: questionnaires
     label: Questionnaires
     label_singular: Questionnaire
@@ -245,28 +223,19 @@ collections:
     summary: "{{fields.questionnaire_id}} · {{title}}"
     editor: { preview: false }
     fields:
-      - { label: Questionnaire ID, name: questionnaire_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. onboarding or track_a_review. Becomes the filename and is referenced by assessments. Do not change after creation." }
+      - { label: Questionnaire ID, name: questionnaire_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. onboarding or track_a_review. Becomes the filename. Do not change after creation." }
       - { label: Title, name: title, widget: string }
-      - { label: Opening text, name: body, widget: markdown, required: false, hint: "Shown before any questions" }
-      - label: Sections
-        name: sections
+      - { label: Opening text, name: body, widget: markdown, required: false, hint: "Shown before the first question" }
+      - label: Questions
+        name: questions
         widget: list
-        summary: "{{fields.title}}"
-        hint: "Questions are grouped into sections, shown in this order"
-        fields:
-          - { label: Section ID, name: section_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'] }
-          - { label: Title, name: title, widget: string, hint: "e.g. How are you?" }
-          - { label: Intro text, name: intro, widget: markdown, required: false, hint: "Shown before the section's questions" }
-          - label: Questions
-            name: questions
-            widget: list
-            summary: "{{fields.question_id}} · {{fields.prompt}}"
-            fields: *question_fields
+        summary: "{{fields.question_id}}"
+        hint: "In the order the user sees them"
+        field: { label: Question, name: question_id, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt] }
+      - { label: Assessment, name: assessment, widget: relation, collection: assessments, value_field: assessment_id, search_fields: [title, assessment_id], display_fields: [title], required: false, hint: "The result shown after the last question" }
  
   # ---------------------------------------------------------------- ASSESSMENTS
-  # An assessment is the composed result a user sees after answering a questionnaire.
-  # It is built from parts shown in the order listed. The scoring code decides WHICH variant,
-  # area or add-on is shown, keyed on the codes below. Editors write and arrange the text.
+  # An assessment is the result shown after a questionnaire: fixed texts and variant sets, top to bottom.
   - name: assessments
     label: Assessments
     label_singular: Assessment
@@ -279,61 +248,63 @@ collections:
     summary: "{{fields.assessment_id}} · {{title}}"
     editor: { preview: false }
     fields:
-      - { label: Assessment ID, name: assessment_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. onboarding. Becomes the filename and is referenced by completion screens. Do not change after creation." }
+      - { label: Assessment ID, name: assessment_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. onboarding. Becomes the filename and is referenced by questionnaires. Do not change after creation." }
       - { label: Title, name: title, widget: string }
-      - { label: Questionnaire, name: questionnaire, widget: relation, collection: questionnaires, value_field: questionnaire_id, search_fields: [title, questionnaire_id], display_fields: [title], hint: "The questions whose answers this assessment is built from" }
-      - label: Parts
-        name: parts
+      - label: Blocks
+        name: blocks
         widget: list
         hint: "Shown top to bottom in this order"
         types:
           - label: Fixed text
             name: text
             widget: object
-            summary: "{{fields.label}}"
-            hint: "Shown to every user, e.g. a bridge line between parts"
+            summary: "{{fields.heading}}"
+            hint: "Shown to every user, e.g. a bridge line between variant sets"
             fields:
-              - { label: Label, name: label, widget: string, hint: "Editor-only name, e.g. Bridge line" }
               - { label: Heading, name: heading, widget: string, required: false }
-              - { label: Text, name: body, widget: text }
+              - { label: Text, name: body, widget: markdown }
  
-          - label: Variants
-            name: variants
+          - label: Variant set
+            name: variant_set
             widget: object
-            summary: "{{fields.label}} · {{fields.pick}}"
-            hint: "A set of alternative texts. The scoring code picks which one(s) to show."
+            summary: "{{fields.label}} · {{fields.show}}"
+            hint: "Alternative texts. Each variant scores from its conditions against the user's profile"
             fields:
-              - { label: Part ID, name: part_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. hook. Used by the scoring code. Do not change." }
               - { label: Label, name: label, widget: string, hint: "Editor-only name, e.g. Hook" }
-              - { label: Heading, name: heading, widget: string, required: false, hint: "Shown above the text, if any" }
-              - { label: Shown, name: pick, widget: select, default: one, options: [{ label: "One variant (the best match)", value: one }, { label: "Every variant that applies (add-ons)", value: any }] }
-              - label: Variants
-                name: items
-                widget: list
-                summary: "{{fields.code}} · {{fields.text}}"
-                fields:
-                  - { label: Code, name: code, widget: string, pattern: ['^[A-Z0-9_]+$', 'Upper case, digits, underscores, e.g. HOOK_01'], hint: "Used by the scoring code. Do not change." }
-                  - { label: Text, name: text, widget: text, hint: "Blank line = new paragraph" }
-                  - { label: Leads into track, name: track, widget: relation, collection: tracks, value_field: track_id, search_fields: [title, track_id], display_fields: [title], required: false, hint: "Only when this text recommends a track" }
-                  - { label: When it applies, name: rule_note, widget: text, required: false, hint: "Plain-language description of the rule for the developer. Not executed." }
+              - label: Show
+                name: show
+                widget: select
+                default: winner_only
+                options:
+                  - { label: "Only the highest scoring variant", value: winner_only }
+                  - { label: "Only the lowest scoring variant", value: loser_only }
+                  - { label: "All variants", value: all }
+              - { label: Variants, name: variants, widget: relation, collection: variants, value_field: variant_id, search_fields: [name, variant_id, text], display_fields: [variant_id, name], multiple: true }
  
-          - label: Scored areas
-            name: areas
-            widget: object
-            summary: "{{fields.label}}"
-            hint: "Areas with a fixed text, plus a low or high note depending on the score"
-            fields:
-              - { label: Part ID, name: part_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "Used by the scoring code. Do not change." }
-              - { label: Label, name: label, widget: string, hint: "Editor-only name, e.g. Life areas" }
-              - { label: Intro, name: intro, widget: text, required: false, hint: "Shown above the areas" }
-              - label: Areas
-                name: items
-                widget: list
-                summary: "{{fields.code}} · {{fields.label}}"
-                fields:
-                  - { label: Code, name: code, widget: string, pattern: ['^[A-Z0-9_]+$', 'Upper case, digits, underscores, e.g. AREA_01'], hint: "Used by the scoring code. Do not change." }
-                  - { label: Label, name: label, widget: string }
-                  - { label: Question ID, name: question_id, widget: string, hint: "The question whose score drives this area (e.g. Q18). Changing this changes scoring" }
-                  - { label: Area text, name: area_text, widget: text, hint: "Shown whenever this area appears" }
-                  - { label: Text when the score is low, name: low_text, widget: text }
-                  - { label: Text when the score is high, name: high_text, widget: text }
+  # ---------------------------------------------------------------- VARIANTS
+  # A variant is one alternative text plus its conditions as JSON. The backend does all scoring.
+  - name: variants
+    label: Variants
+    label_singular: Variant
+    folder: content/variants
+    extension: md
+    format: yaml-frontmatter
+    create: true
+    slug: "{{fields.variant_id}}"
+    identifier_field: variant_id
+    summary: "{{fields.variant_id}} · {{name}}"
+    sortable_fields: [variant_id, name]
+    view_groups:
+      - { label: Name, field: name }
+    editor: { preview: false }
+    fields:
+      - { label: Variant ID, name: variant_id, widget: string, pattern: ['^[A-Z0-9_]+$', 'Upper case, digits, underscores, e.g. HOOK_01'], hint: "Becomes the filename. Do not change after creation." }
+      - { label: Name, name: name, widget: string, hint: "The kind of text, e.g. Hook" }
+      - { label: Text, name: text, widget: text, hint: "Blank line = new paragraph" }
+      - label: Conditions
+        name: conditions
+        widget: code
+        default_language: json
+        output_code_only: true
+        required: false
+        hint: 'JSON, evaluated by the backend. Examples: {"metric_threshold": ["stress", ">", 3]}  {"modifier_is": ["disruption", true]}  {"and": [ ... ]}  {"or": [ ... ]}. Several conditions: put them in a JSON list.'
