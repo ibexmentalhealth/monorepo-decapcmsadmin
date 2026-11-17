@@ -27,6 +27,13 @@ collections:
       - { label: Description, name: description, widget: string, hint: "e.g. Building nervous system regulation tools and capacity"}
       - { label: Display order, name: display_order, widget: number, value_type: int, min: 1 , hint: "The sorting order when all tracks are listed"}
       - { label: Overview, name: body, widget: markdown }
+      - label: Routing
+        name: routing
+        widget: code
+        default_language: json
+        output_code_only: true
+        required: false
+        hint: 'JSON, evaluated by the backend. The rules that make this track a candidate for a user, in the same condition format as variants, e.g. {"metric_threshold": ["stress", ">", 3]}. Leave empty for no rules.'
  
   # ---------------------------------------------------------------- UNITS
   - name: units
@@ -141,7 +148,7 @@ collections:
                 name: question_ids
                 widget: list
                 field: { label: Question, name: question_id, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt] }
- 
+
           - label: Question
             name: question
             widget: object
@@ -149,7 +156,7 @@ collections:
             hint: "A question the user answers here. Questions are written once under Questions and placed in days or questionnaires by reference"
             fields:
               - { label: Question, name: question_id, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt] }
- 
+
   # ---------------------------------------------------------------- QUESTIONS
   # Every question is written once here and referenced by ID from day blocks and questionnaires.
   # A question may feed one metric (a number) or one modifier (true/false) on the user's profile.
@@ -208,7 +215,14 @@ collections:
       - { label: Feeds metric, name: metric, widget: select, required: false, options: [{ label: Stress, value: stress }, { label: Anxiety, value: anxiety }, { label: Conscientiousness, value: conscientiousness }, { label: Neuroticism, value: neuroticism }, { label: Emotional sensitivity, value: emotional_sensitivity }, { label: Goal alignment, value: goal_alignment }, { label: Relationship satisfaction, value: relationship_satisfaction }, { label: Agreeableness, value: agreeableness }, { label: Extraversion, value: extraversion }, { label: Openness, value: openness }, { label: Drive, value: drive }, { label: Self-efficacy, value: self_efficacy }, { label: PSS, value: pss }, { label: GAD, value: gad }, { label: PHQ, value: phq }, { label: Physical Health, value: physical_health }, { label: Work-Life Balance, value: work_life_balance }, { label: Close Relationships, value: close_relationships }, { label: Community and Belonging, value: community_and_belonging }], hint: "The answer is added to this metric on the user's profile. Scale, single select and dropdown only. The list mirrors the database and is changed by a developer" }
       - { label: Sets modifier, name: modifier, widget: select, required: false, options: [{ label: Disruption, value: disruption }], hint: "The answer sets this true/false modifier on the user's profile. Toggle only. The list mirrors the database and is changed by a developer. A question feeds a metric or a modifier, not both" }
       - { label: Follow-up question, name: follow_up, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt], required: false, hint: "Asked after this one, e.g. 'What happened?' after a toggle" }
- 
+      - label: Follow-up conditions
+        name: follow_up_conditions
+        widget: code
+        default_language: json
+        output_code_only: true
+        required: false
+        hint: 'JSON, evaluated by the backend. The follow-up question is only asked when these conditions are true. Leave empty to always ask it. Follow-up questions are not placed in day blocks or questionnaires.'
+
   # ---------------------------------------------------------------- QUESTIONNAIRES
   # A questionnaire is an ordered list of questions, optionally followed by an assessment.
   - name: questionnaires
@@ -233,7 +247,7 @@ collections:
         hint: "In the order the user sees them"
         field: { label: Question, name: question_id, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt] }
       - { label: Assessment, name: assessment, widget: relation, collection: assessments, value_field: assessment_id, search_fields: [title, assessment_id], display_fields: [title], required: false, hint: "The result shown after the last question" }
- 
+
   # ---------------------------------------------------------------- ASSESSMENTS
   # An assessment is the result shown after a questionnaire: fixed texts and variant sets, top to bottom.
   - name: assessments
@@ -263,7 +277,7 @@ collections:
             fields:
               - { label: Heading, name: heading, widget: string, required: false }
               - { label: Text, name: body, widget: markdown }
- 
+
           - label: Variant set
             name: variant_set
             widget: object
@@ -280,7 +294,7 @@ collections:
                   - { label: "Only the lowest scoring variant", value: loser_only }
                   - { label: "All variants", value: all }
               - { label: Variants, name: variants, widget: relation, collection: variants, value_field: variant_id, search_fields: [name, variant_id, text], display_fields: [variant_id, name], multiple: true }
- 
+
   # ---------------------------------------------------------------- VARIANTS
   # A variant is one alternative text plus its conditions as JSON. The backend does all scoring.
   - name: variants
