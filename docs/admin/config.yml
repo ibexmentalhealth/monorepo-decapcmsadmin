@@ -102,6 +102,18 @@ collections:
       - { label: Estimated minutes (upper end of range), name: estimated_minutes_max, widget: number, value_type: int, min: 1, required: false }
       - { label: Time label override, name: time_label, widget: string, required: false, hint: "Only if the time is not a simple range, e.g. '5 minutes in-app, rest in the world'" }
       - { label: Session format summary, name: format_summary, widget: string, required: false, hint: "e.g. Teaching → Exercise → Reflection" }
+      - label: Included in track lengths
+        name: lengths
+        widget: select
+        multiple: true
+        min: 1
+        default: [short, medium, full]
+        options:
+          - { label: Short, value: short }
+          - { label: Medium, value: medium }
+          - { label: Full, value: full }
+        hint: "Which versions of the track include this day. Untick a length to leave the day out of it, e.g. Medium + Full but not Short"
+      - { label: Evidence, name: evidence, widget: markdown, required: false, buttons: [bold, italic, link], hint: "Optional citation or research basis for this day. Shown behind an icon, separate from the day text" }
  
       # ---- TEACHING / REFLECTION: ordered content blocks (also used inside practice sections)
       - &blocks
@@ -157,6 +169,15 @@ collections:
             fields:
               - { label: Question, name: question_id, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt] }
 
+          - label: Check-in
+            name: check_in
+            widget: object
+            summary: "{{fields.question_id}}"
+            hint: "Attaches a check-in to this day: a question the app asks later as a notification, outside the day order (e.g. after the user has practised in real life). It is not shown in the day itself and never blocks progress"
+            fields:
+              - { label: Check-in question, name: question_id, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt] }
+
+
   # ---------------------------------------------------------------- QUESTIONS
   # Every question is written once here and referenced by ID from day blocks and questionnaires.
   # A question may feed one metric (a number) or one modifier (true/false) on the user's profile.
@@ -172,6 +193,7 @@ collections:
     summary: "{{fields.question_id}} · {{prompt}}"
     sortable_fields: [question_id]
     view_groups:
+
       - { label: Type, field: type }
     editor: { preview: false }
     fields:
@@ -206,10 +228,11 @@ collections:
         widget: list
         required: false
         summary: "{{fields.label}}"
-        hint: "Single select, multi select, toggle and dropdown only. The answer is stored as the position of the chosen option, so never reorder or remove options after launch"
+        hint: "Single select, multi select, toggle and dropdown only. The answer is stored as the option Value, not its position or label, so labels can be reworded and options added, removed or reordered after launch. Never change a Value once answers exist"
         fields:
-          - { label: Value, name: value, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'] }
-          - { label: Label, name: label, widget: string }
+          - { label: Value, name: value, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. a_bit_tense. This is what is saved with the answer. Unique within the question. Never change it once answers exist" }
+          - { label: Label, name: label, widget: string, hint: "What the user sees. Can be reworded at any time" }
+          - { label: Score, name: score, widget: number, value_type: float, required: false, hint: "Only when the question feeds a metric: the number this choice adds to the metric" }
           - { label: Shows a text field when chosen ("Other"), name: has_text_field, widget: boolean, default: false }
           - { label: Exclusive (clears the other choices when picked), name: is_exclusive, widget: boolean, default: false, hint: "Multi select only" }
       - { label: Feeds metric, name: metric, widget: select, required: false, options: [{ label: Stress, value: stress }, { label: Anxiety, value: anxiety }, { label: Conscientiousness, value: conscientiousness }, { label: Neuroticism, value: neuroticism }, { label: Emotional sensitivity, value: emotional_sensitivity }, { label: Goal alignment, value: goal_alignment }, { label: Relationship satisfaction, value: relationship_satisfaction }, { label: Agreeableness, value: agreeableness }, { label: Extraversion, value: extraversion }, { label: Openness, value: openness }, { label: Drive, value: drive }, { label: Self-efficacy, value: self_efficacy }, { label: PSS, value: pss }, { label: GAD, value: gad }, { label: PHQ, value: phq }, { label: Physical Health, value: physical_health }, { label: Work-Life Balance, value: work_life_balance }, { label: Close Relationships, value: close_relationships }, { label: Community and Belonging, value: community_and_belonging }], hint: "The answer is added to this metric on the user's profile. Scale, single select and dropdown only. The list mirrors the database and is changed by a developer" }
@@ -223,6 +246,14 @@ collections:
         required: false
         hint: 'JSON, evaluated by the backend. The follow-up question is only asked when these conditions are true. Leave empty to always ask it. Follow-up questions are not placed in day blocks or questionnaires.'
 
+      - label: Notification
+        name: notification
+        widget: object
+        required: false
+        hint: "Only for check-in questions: the text of the notification that asks this question"
+        fields:
+          - { label: Title, name: title, widget: string, hint: "e.g. Time for your practice" }
+          - { label: Message, name: message, widget: text, hint: "e.g. Did you get to it today?" }
   # ---------------------------------------------------------------- QUESTIONNAIRES
   # A questionnaire is an ordered list of questions, optionally followed by an assessment.
   - name: questionnaires

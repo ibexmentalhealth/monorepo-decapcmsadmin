@@ -5,129 +5,138 @@ All programme content lives as Markdown files with YAML front matter. Decap CMS 
 ```
 admin/config.yml        Decap CMS config (defines every field below)
 content/tracks/         one file per track
-content/weeks/          one file per week
+content/units/          one file per unit
 content/days/           one file per day
-content/assessments/    questionnaires (same question model as days)
-content/assessment_result/  the copy on the assessment result screen (see the last section)
+content/questions/      one file per question (used by days and questionnaires)
+content/questionnaires/ one file per questionnaire (an ordered list of questions)
+content/assessments/    one file per assessment (the result after a questionnaire)
+content/variants/       one file per variant text, with its scoring conditions
 tools/validate.py       checks content against the config before you commit
 ```
  
 ## The model
  
 ```
-Track  ->  Week (x4)  ->  Day (x7)
+Track  ->  Unit  ->  Day
 ```
  
-Each level points up to its parent by ID: a week has `track: track_x`, a day has `week: track_x_week_1`. The filename is always `<ID>.md`, and the ID must match the `track_id` / `week_id` / `day_id` field. Lowercase letters, digits and underscores only. **Never rename an ID after launch.**
+Each level points up to its parent by ID: a unit has `track: track_x`, a day has `unit: track_x_unit_1`. The filename is always `<ID>.md`, and the ID must match the `track_id` / `unit_id` / `day_id` field. Lowercase letters, digits and underscores only. **Never rename an ID after launch.**
  
 ## Order of work for a new track
  
 Create things top-down, because children reference their parents.
  
 1. **Track** (`content/tracks/track_x.md`)
-2. **4 weeks** (`content/weeks/track_x_week_1.md` ... `_4.md`)
+2. **Units** (`content/units/track_x_unit_1.md`, `track_x_unit_2.md`, ...)
 3. **Days** (28 for a full track; `content/days/track_x_w1_d1.md` ... `track_x_w4_d7.md`)
 4. **Validate**, then commit.
 ### 1. Track
  
 | Field | Notes |
 |---|---|
-| `track_id` | `track_x`. Referenced by every week. |
+| `track_id` | `track_x`. Referenced by every unit. |
 | `title`, `description` | Shown in the track list. |
 | `display_order` | Position among tracks (1, 2, 3 ...). |
 | body | Overview text (required in the CMS). |
+| `routing` | Optional JSON text: the rules that make this track a candidate for a user, in the same condition format as variants (see Conditions). The backend evaluates it; empty = no rules. |
  
-### 2. Weeks
+### 2. Units
  
 | Field | Notes |
 |---|---|
-| `week_id`, `track`, `week_number` | `track_x_week_2`, `track_x`, `2`. |
+| `unit_id`, `track`, `unit_number` | `track_x_unit_2`, `track_x`, `2`. |
 | `title`, `subtitle` | Required title; subtitle optional. |
 | `epigraph_quote`, `epigraph_author` | Optional quote shown at the top. |
-| `has_intro` | The intro screen is the Markdown body of the file ("what this week is about", days-at-a-glance table). Set `has_intro: false` for no intro. **The intro never counts toward week completion.** |
+| `has_intro` | The intro screen is the Markdown body of the file ("what this unit is about", days-at-a-glance table). Set `has_intro: false` for no intro. |
  
 ### 3. Days
  
-`day_number` is 1 to 7. Most tracks run all seven days of a week; a track that does not simply leaves the missing day numbers out.
+`day_number` sets the order within the unit. Days follow each other in order; the last day of a unit is followed by the first day of the next unit.
  
-**Fields every day needs:** `day_id`, `week`, `day_number`, `day_type`, `title`, `estimated_minutes`, `completes_week`, plus content (`blocks`, or `morning` / `evening` for two-part practice days). Optional: `day_label` (the "ZONE 2" / "EXERCISE" style tag), `subtitle`, `estimated_minutes_max`, `time_label` (when the time is not a simple range), `format_summary`.
+**Fields every day needs:** `day_id`, `unit`, `day_number`, `day_type`, `title`, `estimated_minutes`, `lengths`, plus `blocks`. Optional: `evidence`, `day_label` (the "ZONE 2" / "EXERCISE" style tag), `subtitle`, `estimated_minutes_max`, `time_label` (when the time is not a simple range), `format_summary`.
  
-## What makes progression work
+## Day blocks
  
-Days are always sequential on every track: each day opens once the previous day is complete. There is no per-track setting for this.
- 
-Progression depends on `day_type` and `completes_week`. The app decides when a day counts as done from its structure:
- 
-| Day type | Typical use | Content |
-|---|---|---|
-| `teaching` | Teaching, exercise, intervals | `blocks`, ending with an `exercise` block |
-| `practice` (two-part) | Zone 2, real-world rep: morning prompt + evening check-in | `morning.blocks` and `evening.blocks` |
-| `practice` (single) | Short action day | `blocks` |
-| `reflection` | Week review | `blocks`; questions `required: true` |
- 
-**`completes_week`**: set `true` on **exactly one day per week**, the last day of that week. This is Day 7 for tracks that run every day, and an earlier day for tracks that do not. Completing it completes the week and the next week becomes available. Set `false` on every other day.
- 
-**`completion_screen`** (on the day that completes the week) controls what shows after completing:
-- `celebration: week` on the last day of Weeks 1-3
-- `celebration: track` on the last day of Week 4
-- Optional `success_message`, body, and `followup_assessment` (offers an assessment, e.g. an exit measure)
-## Content blocks
- 
-Day content is an ordered list of `blocks`:
+A day is an ordered list of `blocks`:
  
 | Block | Use |
 |---|---|
-| `text` | Prose. `style`: `normal`, `callout`, `note`, `scenario`, `example`, `science`, `excavating`, `anchoring`, `carry` ("To carry into your day"). Has an optional `heading`. |
-| `section` | A phase divider (`open`, `deepen`, `build`, `other`) for tracks that use phases. |
-| `expandable` | Collapsible content, e.g. "Research basis". Needs a `section_id`. |
-| `recall` | Shows earlier answers by question ID (`from: [id, ...]`). `required: true` blocks the day if they are missing. |
-| `exercise` | The questions. The app shows them one at a time. |
+| `text` | Prose. `style`: `normal`, `callout`, `note`, `scenario`, `example`, `science`, `excavating`, `anchoring`, `carry`. Optional `heading`. |
+| `section` | A phase divider (`open`, `deepen`, `build`, `other`). |
+| `expandable` | Collapsible content. Needs a `section_id`. |
+| `recall` | Shows earlier answers: a `label` and a list of questions. |
+| `check_in` | Attaches a check-in question to the day. It is asked later as a notification, outside the day order, and never blocks progress. |
+| `question` | A question the user answers here, picked from the Questions collection. |
  
-A teaching day should end with an `exercise` block, because that is what `exercise_submitted` waits on.
+**`lengths`** says which versions of the track include the day: `short`, `medium`, `full` (tick one or more; default all three). A day in Medium and Full but not Short has `lengths: [medium, full]`. The app builds each person's Short, Medium or Full track from these tags.
+ 
+**`evidence`** is an optional citation or research basis for the day. It is stored apart from the day text so the app can show it behind an icon.
+ 
+There is no completion content on a day. A completion moment is an ordinary final day.
  
 ## Questions
  
-Questions live inside `exercise` blocks.
+Each question is its own file in `content/questions/`, written once and picked by ID in day `question` blocks, `recall` blocks and questionnaires. The filename is `<question_id>.md`.
  
 | Field | Notes |
 |---|---|
-| `question_id` | **Globally unique, never renamed.** Responses are stored against it. Use a track prefix: `d_w2_d3_bring` = Track D, Week 2, Day 3. |
+| `question_id` | **Globally unique, never renamed.** Answers are stored against it. Prefix with the track: `d_w2_d3_bring`. |
 | `type` | `text`, `single_select`, `multi_select`, `toggle`, `dropdown`, `scale`, `date` |
-| `prompt`, `help`, `required` | Question text, optional hint, whether it must be answered. |
-| `group_label` | Heading shown above a run of related questions. |
-| `show_if {question_id, equals}` | Conditional question. `equals: "a\|b"` matches either value. |
-| `options` | `value` (lowercase, underscores) + `label`. `has_text_field: true` = "Other, please say". `is_exclusive: true` = picking it clears other choices (multi-select, e.g. "None of these"). |
-| `scale_min`, `scale_max` | Plus either `scale_min_label` / `scale_max_label` or a full `scale_labels` list. |
-| `builds_patterns` | `true` = the app uses this answer to find patterns across weeks. |
-| `builds_profile` | `true` = the app uses this answer to build the user's profile. |
+| `prompt`, `help`, `placeholder` | Question text, optional hint, optional placeholder (text only). |
+| `scale_min`, `scale_max` | Scale only, plus `scale_min_label` / `scale_max_label` or a full `scale_labels` list. |
+| `options` | `value` + `label`, plus `has_text_field` ("Other"), `is_exclusive` (multi select) and `score` (only when the question feeds a metric). The answer is saved as the option's **`value`** (e.g. `a_bit_tense`), not its position or label. Labels can be reworded and options added, removed or reordered after launch; **never change a `value` once answers exist**. A toggle has exactly two. |
+| `metric` | Feeds this metric on the user's profile (pick from the list). Scale, single select or dropdown only. |
+| `modifier` | Sets this modifier on the profile (pick from the list). Toggle only. A question feeds a metric or a modifier, never both. |
+| `follow_up` | A question asked right after this one (e.g. "What happened?"). Follow-up questions are **not** placed in day blocks or questionnaires; they are reached only through the question that owns them. |
+| `notification` | Only for check-in questions: the `title` and `message` of the notification that asks it. |
+| `follow_up_conditions` | Optional JSON text. The backend only asks the follow-up when these conditions are true; empty = always ask. |
  
-Rules that matter for the app:
-- A `recall` block or `show_if` can only point at a question that exists. Point only at IDs from earlier in the track.
-- Conditional questions should usually be `required: false`, since they are not shown to everyone.
-- For "nothing happened" cases on practice days, ask a question (e.g. "Did something come up today?") and put the follow-up in a conditional question with `show_if`. The consequence is then ordinary content, editable per day.
-- If you change a question's wording, keep its `question_id`. If the meaning changes, create a new ID.
+If you change a question's wording, keep its `question_id`. If the meaning changes, create a new ID.
+ 
+## Metrics and modifiers
+ 
+Metrics (numbers on the user's profile, e.g. Stress) and modifiers (true/false flags, e.g. Disruption) are not content. They live in the database; the CMS only offers their IDs as a pick list on questions, which a developer keeps in sync (`metric` and `modifier` options in `admin/config.yml`).
+ 
+## Check-ins
+ 
+A check-in is a question asked later as a notification, for practice that happens in real life. It lives outside the day order and never blocks the plan.
+ 
+1. Write the check-in as ordinary questions. For "Done / Not now / Didn't fit" then "how much did it help?": a single-select question with options `done`, `not_now`, `didnt_fit`, whose `follow_up` is a 0-10 scale question, with `follow_up_conditions` set so it is only asked after Done.
+2. Give the first question a `notification` (title and message).
+3. In the day where the practice starts, add a `check_in` block pointing at that question.
+When the nudge is sent, at what time, and whether it repeats the next day are decided by the app, not the CMS.
+ 
+## Questionnaires and assessments
+ 
+- **Questionnaire** (`content/questionnaires/`): an opening text, an ordered list of `questions` (each one is a step / view), and optionally an `assessment` shown at the end.
+- **Assessment** (`content/assessments/`): `blocks` shown top to bottom, each either fixed `text` (heading and body) or a `variant_set`.
+- **Variant set**: a label, the variants in it, and **Show**: only the highest scoring variant, only the lowest, or all.
+- **Variant** (`content/variants/`): a `name` (e.g. Hook), the `text`, and `conditions` as JSON.
+### Conditions
+ 
+A variant's `conditions` is plain JSON text. The CMS does not interpret it; the backend does all scoring from it. Formats:
+ 
+```
+{"metric_threshold": ["stress", ">", 3]}
+{"modifier_is": ["disruption", true]}
+{"and": [ ...conditions... ]}
+{"or":  [ ...conditions... ]}
+```
+ 
+Several conditions go in a JSON list. Metric and modifier IDs must exist in the pick lists above; the validator checks the JSON parses and the IDs are known.
+ 
 ## Checklist for a complete track
  
 - [ ] One track file; `display_order` does not clash with another track.
-- [ ] Four week files, `week_number` 1-4, each with `track` set.
-- [ ] One day file per day, named `track_x_w{1-4}_d{1-7}.md` (28 for a track that runs every day); `day_id` matches the filename; `week` points at the right week.
-- [ ] No duplicate `day_number` within a week.
-- [ ] Exactly one `completes_week: true` per week (the last day); `false` elsewhere.
-- [ ] Every teaching day ends with an `exercise` block.
-- [ ] Last day of Weeks 1-3: `celebration: week`.
-- [ ] Last day of Week 4: `celebration: track`.
-- [ ] Every `question_id` carries the track prefix and is unique across all tracks.
-- [ ] Every `recall` and `show_if` reference exists.
+- [ ] One file per unit, `unit_number` in order, each with `track` set.
+- [ ] One day file per day, named `track_x_u{n}_d{n}.md`; `day_id` matches the filename; `unit` points at the right unit.
+- [ ] No duplicate `day_number` within a unit.
+- [ ] Every question used in a day exists in `content/questions/` with a unique `question_id`.
 - [ ] `python3 -I tools/validate.py admin/config.yml .` prints `OK`.
+The validator also checks that every reference exists, that a question's type fits its metric or modifier, and that variant conditions are valid JSON with known IDs.
+ 
 ## Tips
  
 - **YAML quoting:** wrap any plain-text value containing `: ` or starting with a special character in quotes. For multi-paragraph prose use a block scalar (`body: |-`) and indent the text.
 - **Editing locally:** with `local_backend: true`, run `npx decap-server` next to your repo and open `/admin`.
 - **Dates and times:** `estimated_minutes` is the low end; put the high end in `estimated_minutes_max`. Use `time_label` for text like "5 minutes in-app, rest in the world".
-- **Worked examples:** see `content/` for each track. Track D is a good reference for the usual structure; Track E shows a fully converted 28-day track.
-## Assessment result copy
- 
-The text on the assessment result screen (hooks, states, personality profiles, life areas, track recommendations, closing line, disclaimer) lives in `content/assessment_result/`, one file per block, edited under "Assessment result copy" in the CMS.
- 
-- The scoring code decides which variant a user sees. It keys off the `code` values (`HOOK_01`, `STATE_02`, `AREA_03`, ...), so edit wording freely but **do not change codes**, and add or remove entries only together with a developer.
-- **New track:** add an entry to `track_recommendations.md` (track, code like `TRACK_G`, text). Without it, a user routed to the new track sees no recommendation.
