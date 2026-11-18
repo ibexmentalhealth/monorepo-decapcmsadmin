@@ -74,9 +74,8 @@ async function run() {
   }
   const body = await res.json();
   if (res.status === 401) return fail('Your CMS login has expired. Log in to the CMS again, then check again here.');
-  if (res.status === 403) return fail('GitHub says you have no access to the content repository, or the branch does not exist.');
+  if (res.status === 403) return fail('Your account is not on the content editors list. Ask an admin to add your CMS login email.');
   if (!res.ok) return fail(`The API answered with an error (${res.status}). Try again in a minute.`);
-
   $('meta').textContent = `${body.repo} @ ${body.ref}`;
   $('status').textContent = body.summary;
   $('status').className = `summary ${body.valid ? 'valid' : 'invalid'}`;
