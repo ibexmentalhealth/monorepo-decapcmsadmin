@@ -208,7 +208,7 @@ collections:
           - { label: Multi select (checkboxes), value: multi_select }
           - { label: Toggle (yes/no), value: toggle }
           - { label: Dropdown, value: dropdown }
-          - { label: Scale (e.g. 1-5, 1-10), value: scale }
+          - { label: "Scale (e.g. 1-5, 1-10)", value: scale }
           - { label: Date, value: date }
       - { label: Prompt, name: prompt, widget: text }
       - { label: Help text, name: help, widget: text, required: false }
