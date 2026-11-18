@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Content validation</title>
+<style>
+  :root { color-scheme: light dark; --bad: #b3261e; --ok: #1b7f3b; }
+  body { font: 15px/1.5 system-ui, sans-serif; max-width: 52rem; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.4rem; }
+  .summary { font-size: 1.1rem; font-weight: 600; }
+  .valid { color: var(--ok); }
+  .invalid, .problem { color: var(--bad); }
+  .file { margin: 1.2rem 0 0.3rem; font-family: ui-monospace, monospace; font-weight: 600; word-break: break-all; }
+  ul { margin: 0; padding-left: 1.2rem; }
+  li { margin: 0.3rem 0; }
+  code { font-family: ui-monospace, monospace; background: rgba(127,127,127,.18); padding: 0 .3em; border-radius: 3px; }
+  .rule { opacity: .6; font-size: .85em; }
+  details { margin-top: 2rem; }
+  pre { overflow-x: auto; }
+  button { font: inherit; }
+</style>
+</head>
+<body>
+<h1>Content validation</h1>
+<p id="meta"></p>
+<p id="status" class="summary">Checking…</p>
+<div id="files"></div>
+<p><button id="again" hidden>Check again</button></p>
+<details id="raw" hidden><summary>Raw JSON</summary><pre id="json"></pre></details>
+
+<script>
+// Put this file next to the Decap admin (same origin), e.g. /admin/validate.html. It reads the GitHub token that
+// Decap stored at login, so it only works for someone who is logged in to the CMS, and the backend lets GitHub
+// decide whether that person may read the content repo. The token is only sent to API_URL.
+const API_URL = 'https://dev-api.ibexmentalfitness.com';
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, text, className) => {
+  const node = document.createElement(tag);
+  node.textContent = text; // textContent only: messages contain content from the CMS files
+  if (className) node.className = className;
+  return node;
+};
+const fail = (message) => {
+  $('status').textContent = message;
+  $('status').className = 'summary problem';
+  $('again').hidden = false;
+};
+
+function decapToken() {
+  const stored = localStorage.getItem('decap-cms-user');
+  return stored === null ? null : JSON.parse(stored).token;
+}
+
+async function run() {
+  $('again').hidden = true;
+  $('files').replaceChildren();
+  $('raw').hidden = true;
+  $('status').className = 'summary';
+  $('status').textContent = 'Checking…';
+  $('meta').textContent = '';
+
+  const token = decapToken();
+  if (!token) return fail('You are not logged in to the CMS. Open the CMS, log in, then check again here.');
+
+  let res;
+  try {
+    res = await fetch(`${API_URL}/internal/content-validation`, {
+      headers: { authorization: `Bearer ${token}` },
+    });
+  } catch {
+    return fail('Could not reach the API. It may be down outside its running hours (08:00 to 22:00).');
+  }
+  const body = await res.json();
+  if (res.status === 401) return fail('Your CMS login has expired. Log in to the CMS again, then check again here.');
+  if (res.status === 403) return fail('GitHub says you have no access to the content repository, or the branch does not exist.');
+  if (!res.ok) return fail(`The API answered with an error (${res.status}). Try again in a minute.`);
+
+  $('meta').textContent = `${body.repo} @ ${body.ref}`;
+  $('status').textContent = body.summary;
+  $('status').className = `summary ${body.valid ? 'valid' : 'invalid'}`;
+  for (const { file, errors } of body.files) {
+    $('files').append(el('div', file, 'file'));
+    const list = document.createElement('ul');
+    for (const { field, rule, message } of errors) {
+      const item = document.createElement('li');
+      if (field) item.append(el('code', field), ' ');
+      item.append(message, ' ', el('span', `(${rule})`, 'rule'));
+      list.append(item);
+    }
+    $('files').append(list);
+  }
+  $('json').textContent = JSON.stringify(body, null, 2);
+  $('raw').hidden = false;
+  $('again').hidden = false;
+}
+
+$('again').addEventListener('click', run);
+run();
+</script>
+</body>
+</html>
