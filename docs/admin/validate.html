@@ -18,22 +18,27 @@
   .rule { opacity: .6; font-size: .85em; }
   details { margin-top: 2rem; }
   pre { overflow-x: auto; }
-  button { font: inherit; }
+  input, button { font: inherit; }
+  input { min-width: 16rem; }
 </style>
 </head>
 <body>
 <h1>Content validation</h1>
 <p id="meta"></p>
-<p id="status" class="summary">Checking…</p>
+<p id="status" class="summary"></p>
+<form id="keyForm" hidden>
+  <label>Validation key <input id="key" type="password" autocomplete="off" required></label>
+  <button>Save and check</button>
+</form>
 <div id="files"></div>
-<p><button id="again" hidden>Check again</button></p>
+<p><button id="again" hidden>Check again</button> <button id="forget" hidden>Change key</button></p>
 <details id="raw" hidden><summary>Raw JSON</summary><pre id="json"></pre></details>
 
 <script>
-// Put this file next to the Decap admin (same origin), e.g. /admin/validate.html. It reads the GitHub token that
-// Decap stored at login, so it only works for someone who is logged in to the CMS, and the backend lets GitHub
-// decide whether that person may read the content repo. The token is only sent to API_URL.
+// Put this file in the Decap admin repo. The key is given to editors by an admin; it is stored only in this
+// browser's localStorage and sent only to API_URL.
 const API_URL = 'https://dev-api.ibexmentalfitness.com';
+const STORAGE_KEY = 'content-validation-key';
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, text, className) => {
@@ -42,43 +47,44 @@ const el = (tag, text, className) => {
   if (className) node.className = className;
   return node;
 };
-const fail = (message) => {
+const show = (message, className) => {
   $('status').textContent = message;
-  $('status').className = 'summary problem';
-  $('again').hidden = false;
+  $('status').className = `summary ${className}`;
+};
+const askForKey = (message) => {
+  show(message, 'problem');
+  $('keyForm').hidden = false;
+  $('again').hidden = true;
+  $('forget').hidden = true;
 };
 
-function decapToken() {
-  const stored = localStorage.getItem('decap-cms-user');
-  return stored === null ? null : JSON.parse(stored).token;
-}
-
 async function run() {
-  $('again').hidden = true;
   $('files').replaceChildren();
   $('raw').hidden = true;
-  $('status').className = 'summary';
-  $('status').textContent = 'Checking…';
+  $('keyForm').hidden = true;
   $('meta').textContent = '';
+  const key = localStorage.getItem(STORAGE_KEY);
+  if (!key) return askForKey('Enter the validation key you were given.');
 
-  const token = decapToken();
-  if (!token) return fail('You are not logged in to the CMS. Open the CMS, log in, then check again here.');
-
+  show('Checking…', '');
   let res;
   try {
-    res = await fetch(`${API_URL}/internal/content-validation`, {
-      headers: { authorization: `Bearer ${token}` },
-    });
+    res = await fetch(`${API_URL}/internal/content-validation`, { headers: { authorization: `Bearer ${key}` } });
   } catch {
-    return fail('Could not reach the API. It may be down outside its running hours (08:00 to 22:00).');
+    $('again').hidden = false;
+    return show('Could not reach the API. It may be down outside its running hours (08:00 to 22:00).', 'problem');
   }
+  if (res.status === 401) {
+    localStorage.removeItem(STORAGE_KEY);
+    return askForKey('The key was not accepted. Enter the current validation key.');
+  }
+  $('again').hidden = false;
+  $('forget').hidden = false;
+  if (!res.ok) return show(`The API answered with an error (${res.status}). Try again in a minute.`, 'problem');
+
   const body = await res.json();
-  if (res.status === 401) return fail('Your CMS login has expired. Log in to the CMS again, then check again here.');
-  if (res.status === 403) return fail('Your account is not on the content editors list. Ask an admin to add your CMS login email.');
-  if (!res.ok) return fail(`The API answered with an error (${res.status}). Try again in a minute.`);
   $('meta').textContent = `${body.repo} @ ${body.ref}`;
-  $('status').textContent = body.summary;
-  $('status').className = `summary ${body.valid ? 'valid' : 'invalid'}`;
+  show(body.summary, body.valid ? 'valid' : 'invalid');
   for (const { file, errors } of body.files) {
     $('files').append(el('div', file, 'file'));
     const list = document.createElement('ul');
@@ -92,10 +98,19 @@ async function run() {
   }
   $('json').textContent = JSON.stringify(body, null, 2);
   $('raw').hidden = false;
-  $('again').hidden = false;
 }
 
+$('keyForm').addEventListener('submit', (event) => {
+  event.preventDefault();
+  localStorage.setItem(STORAGE_KEY, $('key').value.trim());
+  $('key').value = '';
+  run();
+});
 $('again').addEventListener('click', run);
+$('forget').addEventListener('click', () => {
+  localStorage.removeItem(STORAGE_KEY);
+  run();
+});
 run();
 </script>
 </body>
