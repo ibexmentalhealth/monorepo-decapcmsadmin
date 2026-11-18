@@ -252,8 +252,8 @@ collections:
         required: false
         hint: "Only for check-in questions: the text of the notification that asks this question"
         fields:
-          - { label: Title, name: title, widget: string, hint: "e.g. Time for your practice" }
-          - { label: Message, name: message, widget: text, hint: "e.g. Did you get to it today?" }
+          - { label: Title, name: title, widget: string, required: false, hint: "e.g. Time for your practice" }
+          - { label: Message, name: message, widget: text, required: false, hint: "e.g. Did you get to it today?" }
   # ---------------------------------------------------------------- QUESTIONNAIRES
   # A questionnaire is an ordered list of questions, optionally followed by an assessment.
   - name: questionnaires
@@ -353,3 +353,4 @@ collections:
         output_code_only: true
         required: false
         hint: 'JSON, evaluated by the backend. Examples: {"metric_threshold": ["stress", ">", 3]}  {"modifier_is": ["disruption", true]}  {"and": [ ... ]}  {"or": [ ... ]}. Several conditions: put them in a JSON list.'
+        
