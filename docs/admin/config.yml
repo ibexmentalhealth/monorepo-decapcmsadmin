@@ -223,6 +223,7 @@ collections:
         required: false
         hint: "Scale only. Optional: one label per point in order starting at the minimum. Overrides the min/max labels"
         field: { label: Point label, name: point_label, widget: string }
+      - { label: Maximum choices, name: max_selections, widget: number, value_type: int, min: 1, required: false, hint: "Multi select only. The most options the user can tick. Leave empty for no limit" }
       - label: Options
         name: options
         widget: list
