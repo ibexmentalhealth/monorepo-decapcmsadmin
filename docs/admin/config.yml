@@ -59,46 +59,46 @@ collections:
       - { label: Epigraph quote, name: epigraph_quote, widget: text, required: false, hint: "Optional quotation shown at the top of the unit" }
       - { label: Epigraph author, name: epigraph_author, widget: string, required: false }
       - { label: Outcome statement, name: outcome, widget: text, required: false, hint: "Optional. Shown after the intro text and on the unit card, e.g. 'By the end of the unit...'" }
-      - { label: Has intro screen, name: has_intro, widget: boolean, default: true, hint: "The intro is not a day" }
+      - { label: Has intro screen, name: has_intro, widget: boolean, default: true, hint: "The intro is not a session" }
       - { label: Intro screen text, name: body, widget: markdown, required: false, hint: "Use ## headings for the intro sections. Do not repeat the outcome statement here." }
  
-  # ---------------------------------------------------------------- DAYS
-  - name: days
-    label: Days
-    label_singular: Day
-    folder: content/days
+  # ---------------------------------------------------------------- SESSIONS
+  - name: sessions
+    label: Sessions
+    label_singular: Session
+    folder: content/sessions
     extension: md
     format: yaml-frontmatter
     create: true
-    slug: "{{fields.day_id}}"
+    slug: "{{fields.session_id}}"
     identifier_field: title
-    summary: "{{fields.day_id}} · {{title}}"
-    sortable_fields: [day_id, title]
+    summary: "{{fields.session_id}} · {{title}}"
+    sortable_fields: [session_id, title]
     view_groups:
       - { label: Unit, field: unit }
-      - { label: Day type, field: day_type }
+      - { label: Session type, field: session_type }
     editor: { preview: false }
     fields:
       # ---- identity & behaviour
-      - { label: Day ID, name: day_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. track_a_w1_d2. Becomes the filename. Do not change after creation." }
+      - { label: Session ID, name: session_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. track_a_u1_s2. Becomes the filename. Do not change after creation." }
       - { label: Unit, name: unit, widget: relation, collection: units, value_field: unit_id, search_fields: [title, unit_id], display_fields: [unit_id, title] }
-      - { label: Day number, name: day_number, widget: number, value_type: int, min: 1 }
-      - label: Day type
-        name: day_type
+      - { label: Session number, name: session_number, widget: number, value_type: int, min: 1 }
+      - label: Session type
+        name: session_type
         widget: select
         options:
           - { label: "Teaching (~10-12 min, scrollable content + exercise)", value: teaching }
-          - { label: "Practice (~3-5 min: short action or two-part day)", value: practice }
+          - { label: "Practice (~3-5 min: short action or two-part session)", value: practice }
           - { label: "Reflection (~7 min, stepped questions)", value: reflection }
       - label: Category
-        name: day_category
+        name: session_category
         widget: select
         required: false
         options: [open, deepen, build, practice, reflect]
       - { label: Title, name: title, widget: string, hint: "e.g. Why we start here" }
-      - { label: Day label, name: day_label, widget: string, required: false, hint: "Display label for the kind of session, e.g. TEACHING, ZONE 2, TECHNICAL DRILL, INTERVALS, REAL-WORLD REP" }
+      - { label: Session label, name: session_label, widget: string, required: false, hint: "Display label for the kind of session, e.g. TEACHING, ZONE 2, TECHNICAL DRILL, INTERVALS, REAL-WORLD REP" }
       - { label: Subtitle, name: subtitle, widget: string, required: false, hint: "e.g. Physical Sensations & Emotional Information" }
-      - { label: Estimated minutes, name: estimated_minutes, widget: number, value_type: int, min: 1, hint: "Lower end if the day shows a range such as 8-10" }
+      - { label: Estimated minutes, name: estimated_minutes, widget: number, value_type: int, min: 1, hint: "Lower end if the session shows a range such as 8-10" }
       - { label: Estimated minutes (upper end of range), name: estimated_minutes_max, widget: number, value_type: int, min: 1, required: false }
       - { label: Time label override, name: time_label, widget: string, required: false, hint: "Only if the time is not a simple range, e.g. '5 minutes in-app, rest in the world'" }
       - { label: Session format summary, name: format_summary, widget: string, required: false, hint: "e.g. Teaching → Exercise → Reflection" }
@@ -112,8 +112,8 @@ collections:
           - { label: Short, value: short }
           - { label: Medium, value: medium }
           - { label: Full, value: full }
-        hint: "Which versions of the track include this day. Untick a length to leave the day out of it, e.g. Medium + Full but not Short"
-      - { label: Evidence, name: evidence, widget: markdown, required: false, buttons: [bold, italic, link], hint: "Optional citation or research basis for this day. Shown behind an icon, separate from the day text" }
+        hint: "Which versions of the track include this session. Untick a length to leave the session out of it, e.g. Medium + Full but not Short"
+      - { label: Evidence, name: evidence, widget: markdown, required: false, buttons: [bold, italic, link], hint: "Optional citation or research basis for this session. Shown behind an icon, separate from the session text" }
  
       # ---- TEACHING / REFLECTION: ordered content blocks (also used inside practice sections)
       - &blocks
@@ -136,7 +136,7 @@ collections:
             name: section
             widget: object
             summary: "{{fields.phase}}"
-            hint: "Marks a phase inside a day (e.g. OPEN, DEEPEN, BUILD). Blocks that follow belong to it until the next divider"
+            hint: "Marks a phase inside a session (e.g. OPEN, DEEPEN, BUILD). Blocks that follow belong to it until the next divider"
             fields:
               - { label: Phase, name: phase, widget: select, options: [{ label: Open, value: open }, { label: Deepen, value: deepen }, { label: Build, value: build }, { label: Other (use the label), value: other }] }
               - { label: Label override, name: label, widget: string, required: false, hint: "Display text if different from the phase name, or when Phase is Other" }
@@ -165,7 +165,7 @@ collections:
             name: question
             widget: object
             summary: "{{fields.question_id}}"
-            hint: "A question the user answers here. Questions are written once under Questions and placed in days or questionnaires by reference"
+            hint: "A question the user answers here. Questions are written once under Questions and placed in sessions or questionnaires by reference"
             fields:
               - { label: Question, name: question_id, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt] }
 
@@ -173,13 +173,13 @@ collections:
             name: check_in
             widget: object
             summary: "{{fields.question_id}}"
-            hint: "Attaches a check-in to this day: a question the app asks later as a notification, outside the day order (e.g. after the user has practised in real life). It is not shown in the day itself and never blocks progress"
+            hint: "Attaches a check-in to this session: a question the app asks later as a notification, outside the session order (e.g. after the user has practised in real life). It is not shown in the session itself and never blocks progress"
             fields:
               - { label: Check-in question, name: question_id, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt] }
 
 
   # ---------------------------------------------------------------- QUESTIONS
-  # Every question is written once here and referenced by ID from day blocks and questionnaires.
+  # Every question is written once here and referenced by ID from session blocks and questionnaires.
   # A question can change any number of metrics and modifiers on the user's profile. Both are numbers; they differ only in category.
   # Choice questions: each option carries its own effects. Scale questions: each effect has a weight applied to the chosen value.
   - name: questions
@@ -280,7 +280,7 @@ collections:
         default_language: json
         output_code_only: true
         required: false
-        hint: 'JSON, evaluated by the backend. The follow-up question is only asked when these conditions are true. Leave empty to always ask it. Follow-up questions are not placed in day blocks or questionnaires.'
+        hint: 'JSON, evaluated by the backend. The follow-up question is only asked when these conditions are true. Leave empty to always ask it. Follow-up questions are not placed in session blocks or questionnaires.'
 
       - label: Notification
         name: notification
