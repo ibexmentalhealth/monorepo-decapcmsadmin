@@ -33,7 +33,7 @@ collections:
         default_language: json
         output_code_only: true
         required: false
-        hint: 'JSON, evaluated by the backend. The rules that make this track a candidate for a user, in the same condition format as variants, e.g. {"metric_threshold": ["stress", ">", 3]}. Leave empty for no rules.'
+        hint: 'JSON, evaluated by the backend. The rules that make this track a candidate for a user, in the same condition format as variants, e.g. {"metric_threshold": ["stress", ">", 3]} or {"modifier_threshold": ["door.improve", ">=", 1]}. Leave empty for no rules.'
  
   # ---------------------------------------------------------------- UNITS
   - name: units
@@ -180,7 +180,8 @@ collections:
 
   # ---------------------------------------------------------------- QUESTIONS
   # Every question is written once here and referenced by ID from day blocks and questionnaires.
-  # A question may feed one metric (a number) or one modifier (true/false) on the user's profile.
+  # A question can change any number of metrics and modifiers on the user's profile. Both are numbers; they differ only in category.
+  # Choice questions: each option carries its own effects. Scale questions: each effect has a weight applied to the chosen value.
   - name: questions
     label: Questions
     label_singular: Question
@@ -234,11 +235,44 @@ collections:
         fields:
           - { label: Value, name: value, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. a_bit_tense. This is what is saved with the answer. Unique within the question. Never change it once answers exist" }
           - { label: Label, name: label, widget: string, hint: "What the user sees. Can be reworded at any time" }
-          - { label: Score, name: score, widget: number, value_type: float, required: false, hint: "Only when the question feeds a metric: the number this choice adds to the metric" }
+          - label: Metric effects
+            name: metric_effects
+            widget: list
+            required: false
+            summary: "{{fields.metric}} {{fields.score}}"
+            hint: "Choosing this option adds each score to its metric on the user's profile. Several metrics can be affected. Use a negative score to lower one. For multi select, the scores of all ticked options are added"
+            fields:
+              - { label: Metric, name: metric, widget: select, options: &metric_options [{ label: Stress, value: stress }, { label: Anxiety, value: anxiety }, { label: Conscientiousness, value: conscientiousness }, { label: Neuroticism, value: neuroticism }, { label: Emotional sensitivity, value: emotional_sensitivity }, { label: Goal alignment, value: goal_alignment }, { label: Relationship satisfaction, value: relationship_satisfaction }, { label: Agreeableness, value: agreeableness }, { label: Extraversion, value: extraversion }, { label: Openness, value: openness }, { label: Drive, value: drive }, { label: Self-efficacy, value: self_efficacy }, { label: PSS, value: pss }, { label: GAD, value: gad }, { label: PHQ, value: phq }, { label: Physical Health, value: physical_health }, { label: Work-Life Balance, value: work_life_balance }, { label: Close Relationships, value: close_relationships }, { label: Community and Belonging, value: community_and_belonging }, { label: Others first, value: others_first }, { label: Perceived stress, value: perceived_stress }, { label: Low mood and interest, value: low_mood_interest }, { label: Area satisfaction - Romantic relationship, value: area_satisfaction.romantic_relationship }, { label: Area satisfaction - Family, value: area_satisfaction.family }, { label: Area satisfaction - Friends, value: area_satisfaction.friends }], hint: "The list mirrors the database and is changed by a developer" }
+              - { label: Score, name: score, widget: number, value_type: float }
+          - label: Modifier effects
+            name: modifier_effects
+            widget: list
+            required: false
+            summary: "{{fields.modifier}} {{fields.score}}"
+            hint: "Same as metric effects, for modifiers on the user's profile"
+            fields:
+              - { label: Modifier, name: modifier, widget: select, options: &modifier_options [{ label: Disruption, value: disruption }, { label: Area importance - Romantic relationship, value: area_importance.romantic_relationship }, { label: Area importance - Family, value: area_importance.family }, { label: Area importance - Friends, value: area_importance.friends }], hint: "The list mirrors the database and is changed by a developer" }
+              - { label: Score, name: score, widget: number, value_type: float }
           - { label: Shows a text field when chosen ("Other"), name: has_text_field, widget: boolean, default: false }
           - { label: Exclusive (clears the other choices when picked), name: is_exclusive, widget: boolean, default: false, hint: "Multi select only" }
-      - { label: Feeds metric, name: metric, widget: select, required: false, options: [{ label: Stress, value: stress }, { label: Anxiety, value: anxiety }, { label: Conscientiousness, value: conscientiousness }, { label: Neuroticism, value: neuroticism }, { label: Emotional sensitivity, value: emotional_sensitivity }, { label: Goal alignment, value: goal_alignment }, { label: Relationship satisfaction, value: relationship_satisfaction }, { label: Agreeableness, value: agreeableness }, { label: Extraversion, value: extraversion }, { label: Openness, value: openness }, { label: Drive, value: drive }, { label: Self-efficacy, value: self_efficacy }, { label: PSS, value: pss }, { label: GAD, value: gad }, { label: PHQ, value: phq }, { label: Physical Health, value: physical_health }, { label: Work-Life Balance, value: work_life_balance }, { label: Close Relationships, value: close_relationships }, { label: Community and Belonging, value: community_and_belonging }, { label: Others first, value: others_first }, { label: Perceived stress, value: perceived_stress }, { label: Low mood and interest, value: low_mood_interest }, { label: Area satisfaction - Romantic relationship, value: area_satisfaction.romantic_relationship }, { label: Area satisfaction - Family, value: area_satisfaction.family }, { label: Area satisfaction - Friends, value: area_satisfaction.friends }], hint: "The answer is added to this metric on the user's profile. Scale, single select and dropdown only. The list mirrors the database and is changed by a developer" }
-      - { label: Sets modifier, name: modifier, widget: select, required: false, options: [{ label: Disruption, value: disruption }, { label: Area importance - Romantic relationship, value: area_importance.romantic_relationship }, { label: Area importance - Family, value: area_importance.family }, { label: Area importance - Friends, value: area_importance.friends }], hint: "The answer sets this true/false modifier on the user's profile. Toggle only. The list mirrors the database and is changed by a developer. A question feeds a metric or a modifier, not both" }
+      - label: Scale metric effects
+        name: scale_metric_effects
+        widget: list
+        required: false
+        summary: "{{fields.metric}} x {{fields.weight}}"
+        hint: "Scale only. The chosen value is multiplied by the weight and added to the metric. Several metrics can be affected. Weight 1 adds the value itself, 0.5 half of it, -1 subtracts it"
+        fields:
+          - { label: Metric, name: metric, widget: select, options: *metric_options }
+          - { label: Weight, name: weight, widget: number, value_type: float }
+      - label: Scale modifier effects
+        name: scale_modifier_effects
+        widget: list
+        required: false
+        summary: "{{fields.modifier}} x {{fields.weight}}"
+        hint: "Scale only. Same as scale metric effects, for modifiers"
+        fields:
+          - { label: Modifier, name: modifier, widget: select, options: *modifier_options }
+          - { label: Weight, name: weight, widget: number, value_type: float }
       - { label: Follow-up question, name: follow_up, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt], required: false, hint: "Asked after this one, e.g. 'What happened?' after a toggle" }
       - label: Follow-up conditions
         name: follow_up_conditions
@@ -354,5 +388,5 @@ collections:
         default_language: json
         output_code_only: true
         required: false
-        hint: 'JSON, evaluated by the backend. Examples: {"metric_threshold": ["stress", ">", 3]}  {"modifier_is": ["disruption", true]}  {"and": [ ... ]}  {"or": [ ... ]}. Several conditions: put them in a JSON list.'
+        hint: 'JSON, evaluated by the backend. Examples: {"metric_threshold": ["stress", ">", 3]}  {"modifier_threshold": ["door.improve", ">=", 1]}  {"and": [ ... ]}  {"or": [ ... ]}. Several conditions: put them in a JSON list.'
         
