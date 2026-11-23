@@ -112,6 +112,14 @@ collections:
             fields:
               - { label: Heading, name: heading, widget: string, required: false }
               - { label: Body, name: body, widget: markdown }
+              - &block_condition
+                label: Condition
+                name: condition
+                widget: code
+                default_language: json
+                output_code_only: true
+                required: false
+                hint: 'JSON, evaluated in the app. The block is only shown when the condition is true; leave empty to always show it. One condition: combine several with {"and": [...]} / {"or": [...]}. Besides the usual metric_threshold, modifier_threshold, and, or, not it can check an answer (this works in every condition field): {"answer_option": ["question_id", "option_value"]} (a choice or toggle question, the toggle options are yes and no) and {"answer_threshold": ["question_id", ">=", 3]} (a scale question). A question that is not answered yet makes both false. See design/content-conditions.md.'
  
           - label: Section divider
             name: section
@@ -121,6 +129,7 @@ collections:
             fields:
               - { label: Phase, name: phase, widget: select, options: [{ label: Open, value: open }, { label: Deepen, value: deepen }, { label: Build, value: build }, { label: Other (use the label), value: other }] }
               - { label: Label override, name: label, widget: string, required: false, hint: "Display text if different from the phase name, or when Phase is Other" }
+              - *block_condition
  
           - label: Expandable section
             name: expandable
@@ -130,6 +139,7 @@ collections:
               - { label: Section ID, name: section_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. w1_d3_expandable_variations. Open/closed state is stored per user against this ID" }
               - { label: Title, name: title, widget: string }
               - { label: Body, name: body, widget: markdown }
+              - *block_condition
  
           - label: Show user's earlier answer
             name: recall
@@ -141,6 +151,7 @@ collections:
                 name: question_ids
                 widget: list
                 field: { label: Question, name: question_id, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt] }
+              - *block_condition
 
           - label: Question
             name: question
@@ -149,14 +160,16 @@ collections:
             hint: "A question the user answers here. Questions are written once under Questions and placed in sessions or questionnaires by reference"
             fields:
               - { label: Question, name: question_id, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt] }
+              - *block_condition
 
           - label: Check-in
             name: check_in
             widget: object
             summary: "{{fields.question_id}}"
-            hint: "Attaches a check-in to this session: a question the app asks later as a notification, outside the session order (e.g. after the user has practised in real life). It is not shown in the session itself and never blocks progress"
+            hint: "Attaches a check-in to this session: a question the app asks at the end of the session, after the user has practised in real life. It is shown in the session but can only be answered from 8 pm, and the session stays open until it is answered"
             fields:
               - { label: Check-in question, name: question_id, widget: relation, collection: questions, value_field: question_id, search_fields: [prompt, question_id], display_fields: [question_id, prompt] }
+              - *block_condition
 
 
   # ---------------------------------------------------------------- QUESTIONS
