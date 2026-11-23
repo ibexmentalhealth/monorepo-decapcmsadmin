@@ -88,21 +88,22 @@ collections:
         name: session_type
         widget: select
         options:
-          - { label: "Teaching (~10-12 min, scrollable content + exercise)", value: teaching }
-          - { label: "Practice (~3-5 min: short action or two-part session)", value: practice }
-          - { label: "Reflection (~7 min, stepped questions)", value: reflection }
+          - { label: "Learn", value: learn }
+          - { label: "Practice", value: practice }
+          - { label: "Experiment", value: experiment }
+          - { label: "Review", value: review }
       - label: Category
         name: session_category
         widget: select
         required: false
         options: [open, deepen, build, practice, reflect]
       - { label: Title, name: title, widget: string, hint: "e.g. Why we start here" }
-      - { label: Session label, name: session_label, widget: string, required: false, hint: "Display label for the kind of session, e.g. TEACHING, ZONE 2, TECHNICAL DRILL, INTERVALS, REAL-WORLD REP" }
+      - { label: Session label, name: session_label, widget: string, required: false, hint: "Display label for the kind of session, e.g. LEARN, ZONE 2, TECHNICAL DRILL, INTERVALS, REAL-WORLD REP" }
       - { label: Subtitle, name: subtitle, widget: string, required: false, hint: "e.g. Physical Sensations & Emotional Information" }
       - { label: Estimated minutes, name: estimated_minutes, widget: number, value_type: int, min: 1, hint: "Lower end if the session shows a range such as 8-10" }
       - { label: Estimated minutes (upper end of range), name: estimated_minutes_max, widget: number, value_type: int, min: 1, required: false }
       - { label: Time label override, name: time_label, widget: string, required: false, hint: "Only if the time is not a simple range, e.g. '5 minutes in-app, rest in the world'" }
-      - { label: Session format summary, name: format_summary, widget: string, required: false, hint: "e.g. Teaching → Exercise → Reflection" }
+      - { label: Session format summary, name: format_summary, widget: string, required: false, hint: "e.g. Learn → Exercise → Review" }
       - label: Included in track lengths
         name: lengths
         widget: select
@@ -116,7 +117,7 @@ collections:
         hint: "Which versions of the track include this session. Untick a length to leave the session out of it, e.g. Medium + Full but not Short"
       - { label: Evidence, name: evidence, widget: markdown, required: false, buttons: [bold, italic, link], hint: "Optional citation or research basis for this session. Shown behind an icon, separate from the session text" }
  
-      # ---- TEACHING / REFLECTION: ordered content blocks (also used inside practice sections)
+      # ---- LEARN / REVIEW: ordered content blocks (also used inside practice sections)
       - &blocks
         label: Content blocks
         name: blocks
