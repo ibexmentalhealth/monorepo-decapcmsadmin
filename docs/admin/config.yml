@@ -111,7 +111,6 @@ collections:
             summary: "{{fields.heading}}"
             fields:
               - { label: Heading, name: heading, widget: string, required: false }
-              - { label: Style, name: style, widget: select, default: normal, options: [normal, callout, note, scenario, example, science, excavating, anchoring, carry] }
               - { label: Body, name: body, widget: markdown }
  
           - label: Section divider
