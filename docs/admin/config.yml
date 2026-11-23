@@ -24,7 +24,8 @@ collections:
     fields:
       - { label: Track ID, name: track_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. track_a. Becomes the filename and is referenced by units. Do not change after creation." }
       - { label: Title, name: title, widget: string, hint: "e.g. Regulate & Recover" }
-      - { label: Description, name: description, widget: string, hint: "e.g. Building nervous system regulation tools and capacity"}
+      - { label: Epigraph quote, name: epigraph_quote, widget: text, required: false, hint: "Optional quotation shown with the track. Fill in the author too" }
+      - { label: Epigraph author, name: epigraph_author, widget: string, required: false, hint: "Required when there is a quote" }
       - { label: Display order, name: display_order, widget: number, value_type: int, min: 1 , hint: "The sorting order when all tracks are listed"}
       - { label: Overview, name: body, widget: markdown }
       - label: Routing
