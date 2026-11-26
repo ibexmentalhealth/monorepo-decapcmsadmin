@@ -131,16 +131,6 @@ collections:
               - { label: Label override, name: label, widget: string, required: false, hint: "Display text if different from the phase name, or when Phase is Other" }
               - *block_condition
  
-          - label: Expandable section
-            name: expandable
-            widget: object
-            summary: "{{fields.title}}"
-            fields:
-              - { label: Section ID, name: section_id, widget: string, pattern: ['^[a-z0-9_]+$', 'Lowercase letters, digits, underscores'], hint: "e.g. w1_d3_expandable_variations. Open/closed state is stored per user against this ID" }
-              - { label: Title, name: title, widget: string }
-              - { label: Body, name: body, widget: markdown }
-              - *block_condition
- 
           - label: Show user's earlier answer
             name: recall
             widget: object
