@@ -198,6 +198,7 @@ collections:
       - { label: Prompt, name: prompt, widget: text }
       - { label: Help text, name: help, widget: text, required: false }
       - { label: Placeholder, name: placeholder, widget: string, required: false, hint: "Free text only" }
+      - { label: Empty answer label, name: empty_answer_label, widget: string, required: false, hint: "Free text only. When set, a checkbox with this label (e.g. Nothing right now) lets the user continue with an empty answer. Leave empty to require text" }
       - { label: Scale minimum, name: scale_min, widget: number, value_type: int, default: 1, required: false, hint: "Scale only" }
       - { label: Scale maximum, name: scale_max, widget: number, value_type: int, min: 2, required: false, hint: "Scale only, e.g. 5 or 10" }
       - { label: Scale step, name: scale_step, widget: number, value_type: float, min: 0, default: 1, required: false, hint: "Scale only. Increment between values, e.g. 0.5 to allow 7.5. Default 1. The range must divide into whole steps" }
